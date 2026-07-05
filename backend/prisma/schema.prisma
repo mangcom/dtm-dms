@@ -19,6 +19,21 @@ enum Role {
   admin
 }
 
+// Mirrors Role 1:1 in meaning, but a User can hold many of these at once via
+// PositionAssignment (Phase 2) instead of the single legacy `Role` column.
+enum PositionType {
+  teacher
+  dept_head
+  work_section_head
+  curriculum_head
+  deputy_academic
+  deputy_plan
+  deputy_resource
+  deputy_student_affairs
+  director
+  admin
+}
+
 enum RequisitionStatus {
   draft
   submitted
@@ -33,23 +48,87 @@ enum ApprovalStatus {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  rmsCode      String   @unique
-  username     String   @unique
-  passwordHash String
-  fullName     String
-  department   String
-  position     String?
-  role         Role
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String      @id @default(uuid())
+  rmsCode       String      @unique
+  username      String      @unique
+  passwordHash  String
+  fullName      String
+  avatarUrl     String?
+  // Legacy string columns kept as read-only fallback through Phase 2 — the
+  // source of truth for authorization is now PositionAssignment/departmentId.
+  // Dropped in a later "Phase 2.1 cleanup" migration once Phase 2 is stable.
+  department    String
+  departmentId  String?
+  departmentRef Department? @relation("UserDepartment", fields: [departmentId], references: [id])
+  position      String?
+  role          Role
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-  subjects       Subject[]        @relation("SubjectTeacher")
-  requisitions   Requisition[]    @relation("RequisitionTeacher")
-  approvalSteps  ApprovalStep[]   @relation("ApprovalActor")
+  subjects      Subject[]            @relation("SubjectTeacher")
+  requisitions  Requisition[]        @relation("RequisitionTeacher")
+  approvalSteps ApprovalStep[]       @relation("ApprovalActor")
+  positions     PositionAssignment[]
 
   @@map("users")
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  shortName String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]               @relation("UserDepartment")
+  subjects        Subject[]            @relation("SubjectDepartment")
+  headAssignments PositionAssignment[] @relation("DeptHeadAssignments")
+  approvalSteps   ApprovalStep[]
+
+  @@map("departments")
+}
+
+// "งาน" — a work unit/section (e.g. งานพัสดุ). Deliberately separate from
+// Department: a work-section head can belong to a different home department
+// than the section they lead (e.g. an IT teacher heading up procurement).
+model WorkSection {
+  id                  String   @id @default(uuid())
+  name                String   @unique
+  managesMaterials    Boolean  @default(false)
+  isProcurementReview Boolean  @default(false)
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  headAssignments PositionAssignment[] @relation("WorkSectionHeadAssignments")
+  approvalSteps   ApprovalStep[]
+
+  @@map("work_sections")
+}
+
+// Replaces the single `User.role` column as the authorization source of
+// truth — a user can hold multiple of these simultaneously (e.g. teacher +
+// work_section_head of งานพัสดุ). Scoped types (dept_head, work_section_head)
+// carry the department/work-section they head; unscoped types leave both null.
+model PositionAssignment {
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  positionType  PositionType
+  departmentId  String?
+  department    Department?  @relation("DeptHeadAssignments", fields: [departmentId], references: [id])
+  workSectionId String?
+  workSection   WorkSection? @relation("WorkSectionHeadAssignments", fields: [workSectionId], references: [id])
+  label         String?
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([positionType])
+  @@map("position_assignments")
 }
 
 // Classroom is schema-only for now (no UI/API yet) — reserved for future use.
@@ -78,10 +157,14 @@ model Subject {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  teacherId   String
-  teacher     User       @relation("SubjectTeacher", fields: [teacherId], references: [id])
-  classroomId String?
-  classroom   Classroom? @relation(fields: [classroomId], references: [id])
+  teacherId    String
+  teacher      User        @relation("SubjectTeacher", fields: [teacherId], references: [id])
+  classroomId  String?
+  classroom    Classroom?  @relation(fields: [classroomId], references: [id])
+  // Backfilled from teacher.departmentId at migration time — approval routing
+  // needs a queryable department on the subject itself (not just via teacher).
+  departmentId String?
+  department   Department? @relation("SubjectDepartment", fields: [departmentId], references: [id])
 
   requisitions Requisition[]
 
@@ -89,15 +172,18 @@ model Subject {
 }
 
 model Material {
-  id            String   @id @default(uuid())
-  code          String   @unique
-  name          String
-  unit          String
-  pricePerUnit  Decimal  @db.Decimal(12, 2)
-  vendor        String?
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(uuid())
+  code         String   @unique
+  name         String
+  description  String?
+  unit         String
+  pricePerUnit Decimal  @db.Decimal(12, 2)
+  vendor       String?
+  imageUrl     String?
+  source       String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   requisitionItems RequisitionItem[]
 
@@ -105,14 +191,14 @@ model Material {
 }
 
 model Requisition {
-  id           String            @id @default(uuid())
-  term         String
-  year         String
-  status       RequisitionStatus @default(draft)
-  totalAmount  Decimal           @default(0) @db.Decimal(12, 2)
-  submittedAt  DateTime?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id          String            @id @default(uuid())
+  term        String
+  year        String
+  status      RequisitionStatus @default(draft)
+  totalAmount Decimal           @default(0) @db.Decimal(12, 2)
+  submittedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   subjectId String
   subject   Subject @relation(fields: [subjectId], references: [id])
@@ -140,16 +226,24 @@ model RequisitionItem {
 }
 
 // One row per step in the approval chain — doubles as the audit trail
-// (who acted, when, and what the outcome was) for a requisition.
+// (who acted, when, and what the outcome was) for a requisition. The actor
+// for a step is resolved dynamically at generation/action time by looking up
+// whoever currently holds `positionType` scoped to department/workSection
+// (see backend/src/modules/workflow/workflow.service.ts) — not a fixed
+// person, since department/work-section heads can be reassigned by admin.
 model ApprovalStep {
-  id           String         @id @default(uuid())
-  stepOrder    Int
-  requiredRole Role
-  status       ApprovalStatus @default(pending)
-  actedAt      DateTime?
-  note         String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id            String         @id @default(uuid())
+  stepOrder     Int
+  positionType  PositionType
+  departmentId  String?
+  department    Department?    @relation(fields: [departmentId], references: [id])
+  workSectionId String?
+  workSection   WorkSection?   @relation(fields: [workSectionId], references: [id])
+  status        ApprovalStatus @default(pending)
+  actedAt       DateTime?
+  note          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   requisitionId String
   requisition   Requisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)

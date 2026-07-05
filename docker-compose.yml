@@ -32,6 +32,8 @@ services:
       NODE_ENV: development
     ports:
       - "4000:4000"
+    volumes:
+      - dtm_uploads_data:/app/uploads
 
   frontend:
     build:
@@ -44,3 +46,4 @@ services:
 
 volumes:
   dtm_postgres_data:
+  dtm_uploads_data:

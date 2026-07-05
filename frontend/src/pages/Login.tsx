@@ -94,9 +94,11 @@ export function Login() {
 
           <div className="mt-[18px] rounded-[9px] bg-surface-2 px-3.5 py-3 text-[12.5px] leading-[1.6] text-text-2">
             <b className="text-text">เดโม:</b> ผู้ใช้ทดสอบทุกบัญชี รหัสผ่านคือ{" "}
-            <code className="font-mono">password</code> เช่น <code className="font-mono">somchai.j</code>{" "}
-            (ครูผู้สอน), <code className="font-mono">wipawadee.t</code> (หัวหน้าแผนกวิชา), <code className="font-mono">admin</code>{" "}
-            (ผู้ดูแลระบบ)
+            <code className="font-mono">password</code> · เข้าสู่ระบบด้วย
+            <b className="text-text"> เลขบัตรประชาชน</b> (ยกเว้นผู้ดูแลระบบ) เช่น{" "}
+            <code className="font-mono">9100000000020</code> (นางพรจิรา เงินเจริญ, ครูผู้สอน),{" "}
+            <code className="font-mono">9100000000011</code> (นายพรชัย ตุ่นแก้ว, หัวหน้าแผนกวิชา),{" "}
+            <code className="font-mono">admin</code> (ผู้ดูแลระบบ)
           </div>
         </form>
       </div>

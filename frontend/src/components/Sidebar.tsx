@@ -27,7 +27,7 @@ function navClass({ isActive }: { isActive: boolean }) {
 
 export function Sidebar({ collapsed }: SidebarProps) {
   const { user, logout } = useAuth();
-  const role = user?.role;
+  const position = user?.activePositionType;
   const showLabels = !collapsed;
 
   return (
@@ -47,31 +47,31 @@ export function Sidebar({ collapsed }: SidebarProps) {
           <DashboardIcon className="flex-none" />
           {showLabels && <span>แดชบอร์ด</span>}
         </NavLink>
-        {role && NAV_VISIBILITY.request(role) && (
+        {position && NAV_VISIBILITY.request(position) && (
           <NavLink to="/request" className={navClass}>
             <PlusIcon className="flex-none" />
             {showLabels && <span>กรอกรายการวัสดุฝึก</span>}
           </NavLink>
         )}
-        {role && NAV_VISIBILITY.materials(role) && (
+        {position && NAV_VISIBILITY.materials(position) && (
           <NavLink to="/materials" className={navClass}>
             <MaterialsIcon className="flex-none" />
             {showLabels && <span>จัดการรายการวัสดุ</span>}
           </NavLink>
         )}
-        {role && NAV_VISIBILITY.workflow(role) && (
+        {position && NAV_VISIBILITY.workflow(position) && (
           <NavLink to="/workflow" className={navClass}>
             <WorkflowIcon className="flex-none" />
             {showLabels && <span>ติดตามสถานะอนุมัติ</span>}
           </NavLink>
         )}
-        {role && NAV_VISIBILITY.documents(role) && (
+        {position && NAV_VISIBILITY.documents(position) && (
           <NavLink to="/documents" className={navClass}>
             <DocumentsIcon className="flex-none" />
             {showLabels && <span>เอกสาร สผ.1.1 – สผ.1.3</span>}
           </NavLink>
         )}
-        {role && NAV_VISIBILITY.admin(role) && (
+        {position && NAV_VISIBILITY.admin(position) && (
           <NavLink to="/admin" className={navClass}>
             <AdminIcon className="flex-none" />
             {showLabels && <span>จัดการผู้ใช้/สิทธิ์</span>}

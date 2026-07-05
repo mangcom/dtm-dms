@@ -1,13 +1,22 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { Role } from "@prisma/client";
+import { PositionType } from "@prisma/client";
 import { env } from "../config/env";
 import { HttpError } from "./errorHandler";
 
+// Carries the user's currently-*active* position (chosen at login or via
+// POST /api/auth/switch-position) — not the full list of positions they hold.
+// department/workSection scope is denormalized here so requirePosition can
+// check authorization synchronously off the JWT, no DB round-trip per request
+// (trade-off: if admin revokes a position mid-session, the old token keeps
+// working until it expires (8h) or the user switches position again).
 export interface AuthTokenPayload {
   sub: string;
-  role: Role;
   username: string;
+  activePositionId: string;
+  activePositionType: PositionType;
+  activeDepartmentId?: string;
+  activeWorkSectionId?: string;
 }
 
 declare global {
@@ -49,10 +58,11 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   }
 }
 
-export function requireRole(...roles: Role[]) {
+/** Checks the user's currently-active position type — not every position they hold. */
+export function requirePosition(...types: PositionType[]) {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) throw new HttpError(401, "Not authenticated");
-    if (!roles.includes(req.user.role)) {
+    if (!types.includes(req.user.activePositionType)) {
       throw new HttpError(403, "Insufficient permissions");
     }
     next();

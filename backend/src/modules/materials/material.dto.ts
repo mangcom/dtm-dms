@@ -5,9 +5,12 @@ export function toMaterialDto(m: Material) {
     id: m.id,
     code: m.code,
     name: m.name,
+    description: m.description,
     unit: m.unit,
     pricePerUnit: Number(m.pricePerUnit),
     vendor: m.vendor,
+    imageUrl: m.imageUrl,
+    source: m.source,
     active: m.active,
   };
 }

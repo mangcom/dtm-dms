@@ -4,6 +4,10 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Materials } from "./pages/Materials";
+import { Admin } from "./pages/Admin";
+import { Profile } from "./pages/Profile";
+import { RequestForm } from "./pages/RequestForm";
+import { Workflow } from "./pages/Workflow";
 import { ComingSoon } from "./pages/ComingSoon";
 import { NAV_VISIBILITY } from "./lib/roles";
 
@@ -20,12 +24,13 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/materials" element={<Materials />} />
         <Route
           path="/request"
           element={
             <ProtectedRoute allow={NAV_VISIBILITY.request}>
-              <ComingSoon title="กรอกรายการวัสดุฝึกต่อรายวิชา" phase="Phase 2" />
+              <RequestForm />
             </ProtectedRoute>
           }
         />
@@ -33,7 +38,7 @@ export default function App() {
           path="/workflow"
           element={
             <ProtectedRoute allow={NAV_VISIBILITY.workflow}>
-              <ComingSoon title="ติดตามสถานะการอนุมัติ" phase="Phase 2" />
+              <Workflow />
             </ProtectedRoute>
           }
         />
@@ -49,7 +54,7 @@ export default function App() {
           path="/admin"
           element={
             <ProtectedRoute allow={NAV_VISIBILITY.admin}>
-              <ComingSoon title="จัดการผู้ใช้และสิทธิ์ (RBAC)" phase="Phase 3" />
+              <Admin />
             </ProtectedRoute>
           }
         />
