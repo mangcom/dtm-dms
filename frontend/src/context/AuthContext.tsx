@@ -32,6 +32,7 @@ interface AuthContextValue {
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   switchPosition: (positionAssignmentId: string) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -71,8 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ใช้รีเฟรชข้อมูลผู้ใช้หลังแก้โปรไฟล์ (เช่น เปลี่ยนรูป) โดยไม่ต้อง login ใหม่
+  const refreshUser = useCallback(async () => {
+    const res = await api.get<{ user: AuthUser }>("/auth/me");
+    setUser(res.data.user);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, switchPosition }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, switchPosition, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
