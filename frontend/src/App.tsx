@@ -1,0 +1,61 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+import { AppShell } from "./components/AppShell";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { Materials } from "./pages/Materials";
+import { ComingSoon } from "./pages/ComingSoon";
+import { NAV_VISIBILITY } from "./lib/roles";
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppShell />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/materials" element={<Materials />} />
+        <Route
+          path="/request"
+          element={
+            <ProtectedRoute allow={NAV_VISIBILITY.request}>
+              <ComingSoon title="กรอกรายการวัสดุฝึกต่อรายวิชา" phase="Phase 2" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workflow"
+          element={
+            <ProtectedRoute allow={NAV_VISIBILITY.workflow}>
+              <ComingSoon title="ติดตามสถานะการอนุมัติ" phase="Phase 2" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/documents"
+          element={
+            <ProtectedRoute allow={NAV_VISIBILITY.documents}>
+              <ComingSoon title="เอกสาร สผ.1.1 – สผ.1.3" phase="Phase 3" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allow={NAV_VISIBILITY.admin}>
+              <ComingSoon title="จัดการผู้ใช้และสิทธิ์ (RBAC)" phase="Phase 3" />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}

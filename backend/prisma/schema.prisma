@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  teacher
+  dept_head
+  curriculum_head
+  deputy_academic
+  deputy_plan
+  deputy_resource
+  deputy_student_affairs
+  director
+  admin
+}
+
+enum RequisitionStatus {
+  draft
+  submitted
+  approved
+  rejected
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id           String   @id @default(uuid())
+  rmsCode      String   @unique
+  username     String   @unique
+  passwordHash String
+  fullName     String
+  department   String
+  position     String?
+  role         Role
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subjects       Subject[]        @relation("SubjectTeacher")
+  requisitions   Requisition[]    @relation("RequisitionTeacher")
+  approvalSteps  ApprovalStep[]   @relation("ApprovalActor")
+
+  @@map("users")
+}
+
+// Classroom is schema-only for now (no UI/API yet) — reserved for future use.
+model Classroom {
+  id           String   @id @default(uuid())
+  label        String
+  studentCount Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subjects Subject[]
+
+  @@map("classrooms")
+}
+
+model Subject {
+  id           String   @id @default(uuid())
+  code         String
+  name         String
+  level        String
+  levelYear    String
+  term         String
+  year         String
+  roomCount    Int      @default(1)
+  studentCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  teacherId   String
+  teacher     User       @relation("SubjectTeacher", fields: [teacherId], references: [id])
+  classroomId String?
+  classroom   Classroom? @relation(fields: [classroomId], references: [id])
+
+  requisitions Requisition[]
+
+  @@map("subjects")
+}
+
+model Material {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  unit          String
+  pricePerUnit  Decimal  @db.Decimal(12, 2)
+  vendor        String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  requisitionItems RequisitionItem[]
+
+  @@map("materials")
+}
+
+model Requisition {
+  id           String            @id @default(uuid())
+  term         String
+  year         String
+  status       RequisitionStatus @default(draft)
+  totalAmount  Decimal           @default(0) @db.Decimal(12, 2)
+  submittedAt  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  teacherId String
+  teacher   User    @relation("RequisitionTeacher", fields: [teacherId], references: [id])
+
+  items         RequisitionItem[]
+  approvalSteps ApprovalStep[]
+
+  @@map("requisitions")
+}
+
+model RequisitionItem {
+  id                String  @id @default(uuid())
+  qty               Int
+  unitPriceSnapshot Decimal @db.Decimal(12, 2)
+  subtotal          Decimal @db.Decimal(12, 2)
+
+  requisitionId String
+  requisition   Requisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  materialId    String
+  material      Material    @relation(fields: [materialId], references: [id])
+
+  @@map("requisition_items")
+}
+
+// One row per step in the approval chain — doubles as the audit trail
+// (who acted, when, and what the outcome was) for a requisition.
+model ApprovalStep {
+  id           String         @id @default(uuid())
+  stepOrder    Int
+  requiredRole Role
+  status       ApprovalStatus @default(pending)
+  actedAt      DateTime?
+  note         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  requisitionId String
+  requisition   Requisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  actorUserId   String?
+  actor         User?       @relation("ApprovalActor", fields: [actorUserId], references: [id])
+
+  @@map("approval_steps")
+}
