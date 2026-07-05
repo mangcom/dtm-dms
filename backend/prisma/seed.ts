@@ -31,6 +31,20 @@
  *     ต้นแบบ requirement ว่า "ระบบนี้จะกำหนด role เพิ่มเติมเอง"
  *   - วัสดุฝึก (Materials) — RMS เป็นระบบทะเบียน/บริหารการเรียนการสอน ไม่ได้
  *     เก็บข้อมูลวัสดุฝึกเลย จึงยังคงใช้ชุดตัวอย่างเดิมจากไฟล์ดีไซน์
+ *
+ * -----------------------------------------------------------------------
+ * รูปแบบ login (username) — อัปเดตตามคำขอ: ใช้ "เลขบัตรประชาชน" เป็น username
+ * -----------------------------------------------------------------------
+ * เหตุผล: ตาราง `users` ใน RMS จริงใช้เลขบัตร ปชช. เป็น username เสมอ (ยกเว้น
+ * บัญชี admin/staff ที่เป็นชื่อ literal) เมื่อถึงเวลาทำระบบ Sync ดึงข้อมูลจาก
+ * RMS จริงในอนาคต ระบบจะ match ผู้ใช้ด้วยเลขบัตร ปชช. เป็นหลัก จึงให้ username
+ * ของ DTM-DMS ตรงรูปแบบเดียวกันไว้ตั้งแต่ตอนนี้ (แต่ยังเป็นเลขปลอม ไม่ใช่ของจริง)
+ *
+ * เมื่อ username กลายเป็นเลขบัตร ปชช. (ซึ่งไม่ใช่ key ที่มนุษย์อ่าน/จำง่าย และ
+ * ในอนาคตอาจต้องรัน sync ซ้ำแล้วอัปเดตค่าได้) จึงเปลี่ยนไปใช้ `rmsCode` เป็น
+ * upsert key แทน username — rmsCode ในที่นี้คือ "รหัสอ้างอิงที่เสถียร" อิงจาก
+ * teachers.id จริงใน RMS (เช่น "RMS-T155") ซึ่งจะไม่เปลี่ยนแม้ username/ข้อมูล
+ * อื่นจะถูกอัปเดตทีหลัง — ทำให้รัน seed ซ้ำได้โดยไม่สร้างผู้ใช้ซ้ำซ้อน
  */
 
 import { PrismaClient, Role } from "@prisma/client";
@@ -73,22 +87,37 @@ interface SeedUser {
 }
 
 /**
+ * username เดิม (ก่อนเปลี่ยนมาใช้เลขบัตร ปชช.) — ใช้ลบผู้ใช้ชุดเก่าทิ้งครั้งเดียว
+ * ตอนย้ายมาใช้รูปแบบใหม่ เพื่อไม่ให้มีผู้ใช้ซ้ำซ้อนค้างอยู่ในฐานข้อมูล (โดยไม่
+ * ต้อง reset ฐานข้อมูลทั้งหมด — ลบเฉพาะผู้ใช้ชุดเก่า + รายวิชาที่ผูกกับพวกเขา)
+ * ลบ block นี้และการเรียกใช้ด้านล่างได้ในอนาคตหลัง deploy รอบนี้ผ่านไปแล้ว
+ */
+const LEGACY_USERNAMES_TO_REMOVE = [
+  "pornchai.t",
+  "pornjira.n",
+  "apinat.r",
+  "supachai.k",
+  "anong.w",
+  "suriya.p",
+  "resource.dep",
+  "student.affairs",
+  "banjong.p",
+];
+
+/**
  * รายชื่อผู้ใช้ทดสอบ — อ้างอิงชื่อ/แผนก/ตำแหน่งจริงจากตาราง `teachers` และ
  * `users` ใน data_rms.sql (แผนกวิชาเทคโนโลยีสารสนเทศ dept_code '1901' เป็นหลัก
  * เพื่อให้ตรงกับแผนกที่ระบุไว้ในไฟล์ดีไซน์ DTM-DMS.dc.html)
  *
- * rmsCode ในที่นี้ = เลขบัตร ปชช. ปลอม (ดู genFakeCitizenId) ใช้แทนตำแหน่ง
- * username ที่ RMS จริงใช้ login — ส่วน username ของระบบเรายังคงเป็นชื่อที่จำ
- * ง่ายสำหรับทดสอบ (ไม่ได้ผูกกับ RMS โดยตรงในเฟสนี้ เพราะยังไม่เชื่อมต่อจริง)
+ * username = เลขบัตร ปชช. ปลอม (ดู genFakeCitizenId) ยกเว้น admin ที่ใช้ 'admin'
+ * ตรงกับ RMS จริง — rmsCode = รหัสอ้างอิงเสถียรจาก RMS (ดูคำอธิบายด้านบนไฟล์)
  */
 const USERS: SeedUser[] = [
   // teachers.id=155, user_id=64 ใน RMS จริง — เป็น head_teacher_id ของแผนก
   // เทคโนโลยีสารสนเทศ (departments.id=8) และ users.role='hod' ตรงกันพอดี
-  // (rmsCode "91...0001" เป็นเลขปลอมที่ตั้งขึ้นเอง ไม่เกี่ยวกับเลขบัตรจริงของ
-  // บุคคลนี้ในไฟล์ RMS แต่อย่างใด — ดูคำเตือนในฟังก์ชัน genFakeCitizenId ด้านบน)
   {
-    rmsCode: genFakeCitizenId("910000000001"),
-    username: "pornchai.t",
+    rmsCode: "RMS-T155",
+    username: genFakeCitizenId("910000000001"),
     fullName: "นายพรชัย ตุ่นแก้ว",
     department: "แผนกวิชาเทคโนโลยีสารสนเทศ",
     position: "หัวหน้าแผนกวิชา",
@@ -97,8 +126,8 @@ const USERS: SeedUser[] = [
   // teachers.id=152, user_id=61 ใน RMS จริง — role='teacher' แผนกเดียวกับด้านบน
   // (ชื่อนี้ตรงกับครูผู้สอนในตัวอย่างฟอร์ม สผ.1.2/1.3 จริงที่ผู้ใช้แนบมาด้วย)
   {
-    rmsCode: genFakeCitizenId("910000000002"),
-    username: "pornjira.n",
+    rmsCode: "RMS-T152",
+    username: genFakeCitizenId("910000000002"),
     fullName: "นางพรจิรา เงินเจริญ",
     department: "แผนกวิชาเทคโนโลยีสารสนเทศ",
     position: "ครูผู้สอน",
@@ -106,8 +135,8 @@ const USERS: SeedUser[] = [
   },
   // teachers.id=151, user_id=60 ใน RMS จริง — role='teacher' แผนกเดียวกัน
   {
-    rmsCode: genFakeCitizenId("910000000003"),
-    username: "apinat.r",
+    rmsCode: "RMS-T151",
+    username: genFakeCitizenId("910000000003"),
     fullName: "นายอภินัทธ์ ไรมันซา",
     department: "แผนกวิชาเทคโนโลยีสารสนเทศ",
     position: "ครูผู้สอน",
@@ -118,56 +147,58 @@ const USERS: SeedUser[] = [
   // กำหนดบทบาทเพิ่มเติมให้ดูแลงานหลักสูตรทั้งวิทยาลัย (ข้ามแผนกได้ ตามที่
   // requirement ระบุไว้สำหรับตำแหน่ง "หัวหน้างานหลักสูตร")
   {
-    rmsCode: genFakeCitizenId("910000000004"),
-    username: "supachai.k",
+    rmsCode: "RMS-T142",
+    username: genFakeCitizenId("910000000004"),
     fullName: "นายศุภชัย แก้ววิลัย",
     department: "งานพัฒนาหลักสูตรและการสอน",
     position: "หัวหน้างานหลักสูตร",
     role: "curriculum_head",
   },
   // ---- ต่อจากนี้ไม่มีข้อมูลใน RMS เลย (RMS ไม่เก็บระดับผู้บริหารสถานศึกษา)
-  // ต้องสมมติชื่อขึ้นเองทั้งหมด ระบุไว้ชัดเจนเพื่อไม่ให้เข้าใจผิดว่าเป็นข้อมูลจริง ----
+  // ต้องสมมติชื่อขึ้นเองทั้งหมด (rmsCode ขึ้นต้นด้วย "SIM-" = Simulated เพื่อ
+  // สื่อว่าไม่มี record ต้นทางใน RMS จริง ต่างจาก "RMS-T..." ด้านบน) ----
   {
-    rmsCode: genFakeCitizenId("999000000001"),
-    username: "anong.w",
+    rmsCode: "SIM-001",
+    username: genFakeCitizenId("999000000001"),
     fullName: "ดร.อนงค์ วัฒนา (ข้อมูลสมมติ)",
     department: "ฝ่ายวิชาการ",
     position: "รองผู้อำนวยการฝ่ายวิชาการ",
     role: "deputy_academic",
   },
   {
-    rmsCode: genFakeCitizenId("999000000002"),
-    username: "suriya.p",
+    rmsCode: "SIM-002",
+    username: genFakeCitizenId("999000000002"),
     fullName: "นายสุริยา แผนงาม (ข้อมูลสมมติ)",
     department: "ฝ่ายแผนงานและยุทธศาสตร์",
     position: "รองผู้อำนวยการฝ่ายแผนงานและยุทธศาสตร์",
     role: "deputy_plan",
   },
   {
-    rmsCode: genFakeCitizenId("999000000003"),
-    username: "resource.dep",
+    rmsCode: "SIM-003",
+    username: genFakeCitizenId("999000000003"),
     fullName: "นายวิเชียร บริหารทรัพย์ (ข้อมูลสมมติ)",
     department: "ฝ่ายบริหารทรัพยากร",
     position: "รองผู้อำนวยการฝ่ายบริหารทรัพยากร",
     role: "deputy_resource",
   },
   {
-    rmsCode: genFakeCitizenId("999000000004"),
-    username: "student.affairs",
+    rmsCode: "SIM-004",
+    username: genFakeCitizenId("999000000004"),
     fullName: "นางกาญจนา พัฒนากิจ (ข้อมูลสมมติ)",
     department: "ฝ่ายพัฒนากิจการนักเรียนนักศึกษา",
     position: "รองผู้อำนวยการฝ่ายพัฒนากิจการนักเรียนนักศึกษา",
     role: "deputy_student_affairs",
   },
   {
-    rmsCode: genFakeCitizenId("999000000005"),
-    username: "banjong.p",
+    rmsCode: "SIM-005",
+    username: genFakeCitizenId("999000000005"),
     fullName: "ดร.บรรจง ผู้นำ (ข้อมูลสมมติ)",
     department: "ผู้บริหารสูงสุด",
     position: "ผู้อำนวยการวิทยาลัย",
     role: "director",
   },
-  // users.id=1 ใน RMS จริง username='admin' role='admin' ตรงกันเป๊ะ ใช้ตรงๆ ได้เลย
+  // users.id=1 ใน RMS จริง username='admin' role='admin' ตรงกันเป๊ะ — เป็น
+  // ข้อยกเว้นที่ไม่ใช้เลขบัตร ปชช. เป็น username เพราะ RMS จริงก็ใช้ 'admin' ตรงๆ
   {
     rmsCode: "RMS-ADMIN",
     username: "admin",
@@ -219,7 +250,8 @@ const CLASSROOMS: Array<{ label: string; studentCount: number }> = [
  * รายวิชา (Subjects) — ใช้รหัสวิชา/ชื่อวิชาจริงจากตาราง `subjects` ใน RMS
  * (กรองเฉพาะวิชาสายเทคโนโลยีสารสนเทศ/คอมพิวเตอร์ที่มีชื่อวิชาสมบูรณ์แล้ว —
  * วิชารหัส 209xx บางตัวในไฟล์ RMS ยังเป็น "รออัปเดตชื่อวิชา" จึงข้ามไป)
- * ผูกกับครูและห้องเรียนที่ seed ไว้ด้านบน เตรียมไว้สำหรับ Phase 2
+ * ผูกกับครูและห้องเรียนที่ seed ไว้ด้านบน เตรียมไว้สำหรับ Phase 2 — อ้างอิงครู
+ * ด้วย rmsCode (เสถียรกว่า username ที่ตอนนี้เป็นเลขบัตร ปชช. อ่านไม่รู้เรื่อง)
  *
  * หมายเหตุ: ตาราง subjects ใน RMS ไม่มีข้อมูลภาคเรียน/ปีการศึกษา (เป็นเพียง
  * รายวิชาตามหลักสูตร ไม่ผูกกับรอบการสอนจริง) ค่า term/year ด้านล่างจึงเป็น
@@ -230,7 +262,7 @@ const SUBJECTS: Array<{
   name: string;
   level: string;
   levelYear: string;
-  teacherUsername: string;
+  teacherRmsCode: string;
   classroomLabel: string;
   roomCount: number;
 }> = [
@@ -239,7 +271,7 @@ const SUBJECTS: Array<{
     name: "เครือข่ายคอมพิวเตอร์",
     level: "ปวช.",
     levelYear: "1",
-    teacherUsername: "pornchai.t",
+    teacherRmsCode: "RMS-T155",
     classroomLabel: "ชทส.1/1 (ปวช.1 เทคโนโลยีสารสนเทศ)",
     roomCount: 1,
   },
@@ -248,7 +280,7 @@ const SUBJECTS: Array<{
     name: "การโปรแกรมควบคุมอุปกรณ์",
     level: "ปวส.",
     levelYear: "1",
-    teacherUsername: "pornchai.t",
+    teacherRmsCode: "RMS-T155",
     classroomLabel: "สทส.1/1 (ปวส.1 เทคโนโลยีสารสนเทศ)",
     roomCount: 1,
   },
@@ -257,7 +289,7 @@ const SUBJECTS: Array<{
     name: "โครงงานด้านเทคโนโลยีสารสนเทศ 1",
     level: "ปวส.",
     levelYear: "1",
-    teacherUsername: "pornjira.n",
+    teacherRmsCode: "RMS-T152",
     classroomLabel: "สทส.1/1 (ปวส.1 เทคโนโลยีสารสนเทศ)",
     roomCount: 1,
   },
@@ -269,10 +301,23 @@ const YEAR = "2568";
 async function main() {
   const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
 
+  // --- one-time cleanup: ย้ายจาก username แบบชื่อเล่นเดิมมาเป็นเลขบัตร ปชช. ---
+  // ลบเฉพาะผู้ใช้ชุดเก่า + รายวิชาที่ผูกกับพวกเขา (ไม่แตะ Material/Classroom
+  // และไม่ reset ฐานข้อมูลทั้งหมด) ลบ block นี้ทิ้งได้ในอนาคตหลังรันผ่านแล้ว
+  const legacyUsers = await prisma.user.findMany({
+    where: { username: { in: LEGACY_USERNAMES_TO_REMOVE } },
+  });
+  if (legacyUsers.length > 0) {
+    const legacyUserIds = legacyUsers.map((u) => u.id);
+    await prisma.subject.deleteMany({ where: { teacherId: { in: legacyUserIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: legacyUserIds } } });
+    console.log(`ลบผู้ใช้ชุดเก่า (username แบบเดิม) ออก ${legacyUsers.length} คน ก่อน seed ชุดใหม่`);
+  }
+
   for (const u of USERS) {
     await prisma.user.upsert({
-      where: { username: u.username },
-      update: {},
+      where: { rmsCode: u.rmsCode },
+      update: { username: u.username, fullName: u.fullName, department: u.department, position: u.position, role: u.role },
       create: { ...u, passwordHash },
     });
   }
@@ -295,8 +340,8 @@ async function main() {
   }
 
   for (const s of SUBJECTS) {
-    const teacher = await prisma.user.findUnique({ where: { username: s.teacherUsername } });
-    if (!teacher) throw new Error(`ไม่พบครูผู้สอน username=${s.teacherUsername} สำหรับวิชา ${s.code}`);
+    const teacher = await prisma.user.findUnique({ where: { rmsCode: s.teacherRmsCode } });
+    if (!teacher) throw new Error(`ไม่พบครูผู้สอน rmsCode=${s.teacherRmsCode} สำหรับวิชา ${s.code}`);
 
     const classroom = classroomByLabel.get(s.classroomLabel);
     const existing = await prisma.subject.findFirst({
@@ -323,6 +368,7 @@ async function main() {
 
   console.log(`Seeded ${USERS.length} users, ${MATERIALS.length} materials, ${CLASSROOMS.length} classrooms, ${SUBJECTS.length} subjects.`);
   console.log(`All seeded users share the password: "${DEFAULT_PASSWORD}"`);
+  console.log(`Login ด้วย username = เลขบัตร ปชช. ปลอม เช่น "${USERS[0].username}" (${USERS[0].fullName}) ยกเว้น "admin"`);
 }
 
 main()
