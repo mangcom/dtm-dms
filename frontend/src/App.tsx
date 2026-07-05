@@ -4,6 +4,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Materials } from "./pages/Materials";
+import { Admin } from "./pages/Admin";
 import { ComingSoon } from "./pages/ComingSoon";
 import { NAV_VISIBILITY } from "./lib/roles";
 
@@ -49,7 +50,7 @@ export default function App() {
           path="/admin"
           element={
             <ProtectedRoute allow={NAV_VISIBILITY.admin}>
-              <ComingSoon title="จัดการผู้ใช้และสิทธิ์ (RBAC)" phase="Phase 3" />
+              <Admin />
             </ProtectedRoute>
           }
         />

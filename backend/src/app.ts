@@ -4,6 +4,10 @@ import cookieParser from "cookie-parser";
 import { env } from "./config/env";
 import { authRouter } from "./modules/auth/auth.routes";
 import { materialRouter } from "./modules/materials/material.routes";
+import { departmentRouter } from "./modules/departments/department.routes";
+import { workSectionRouter } from "./modules/work-sections/workSection.routes";
+import { positionRouter } from "./modules/positions/position.routes";
+import { userRouter } from "./modules/users/user.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 export const app = express();
@@ -16,6 +20,10 @@ app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
 app.use("/api/auth", authRouter);
 app.use("/api/materials", materialRouter);
+app.use("/api/departments", departmentRouter);
+app.use("/api/work-sections", workSectionRouter);
+app.use("/api/positions", positionRouter);
+app.use("/api/users", userRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
