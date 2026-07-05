@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../../config/prisma";
 import { requireAuth } from "../../middleware/auth";
 import { asyncHandler, HttpError } from "../../middleware/errorHandler";
+import { createImageUpload, publicUrlFor } from "../../middleware/upload";
 import { toMaterialDto } from "./material.dto";
 
 export const materialRouter = Router();
@@ -26,10 +27,14 @@ const requireMaterialManager = asyncHandler(async (req: Request, _res: Response,
 
 const materialInputSchema = z.object({
   name: z.string().min(1, "กรุณากรอกชื่อวัสดุ"),
+  description: z.string().optional(),
   unit: z.string().min(1).default("ชิ้น"),
   pricePerUnit: z.coerce.number().min(0),
   vendor: z.string().optional(),
+  source: z.string().optional(),
 });
+
+const materialImageUpload = createImageUpload("materials");
 
 async function nextMaterialCode(): Promise<string> {
   const count = await prisma.material.count();
@@ -101,5 +106,22 @@ materialRouter.delete(
 
     await prisma.material.delete({ where: { id: req.params.id } });
     res.status(204).send();
+  })
+);
+
+materialRouter.put(
+  "/:id/image",
+  requireAuth,
+  requireMaterialManager,
+  materialImageUpload.single("image"),
+  asyncHandler(async (req, res) => {
+    if (!req.file) throw new HttpError(400, "กรุณาเลือกไฟล์รูปภาพ");
+
+    const existing = await prisma.material.findUnique({ where: { id: req.params.id } });
+    if (!existing) throw new HttpError(404, "ไม่พบรายการวัสดุ");
+
+    const imageUrl = publicUrlFor("materials", req.file.filename);
+    const material = await prisma.material.update({ where: { id: req.params.id }, data: { imageUrl } });
+    res.json({ material: toMaterialDto(material) });
   })
 );

@@ -4,15 +4,19 @@ import { api, getApiErrorMessage } from "../lib/apiClient";
 import { fmt } from "../lib/format";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
+import { ImageUpload } from "../components/ImageUpload";
 import { EditIcon, PlusIcon, SearchIcon, TrashIcon } from "../components/icons";
 
 interface Material {
   id: string;
   code: string;
   name: string;
+  description: string | null;
   unit: string;
   pricePerUnit: number;
   vendor: string | null;
+  imageUrl: string | null;
+  source: string | null;
   active: boolean;
 }
 
@@ -20,12 +24,25 @@ interface MaterialFormState {
   open: boolean;
   editId: string | null;
   name: string;
+  description: string;
   unit: string;
   pricePerUnit: string;
   vendor: string;
+  source: string;
+  imageUrl: string | null;
 }
 
-const emptyForm: MaterialFormState = { open: false, editId: null, name: "", unit: "", pricePerUnit: "", vendor: "" };
+const emptyForm: MaterialFormState = {
+  open: false,
+  editId: null,
+  name: "",
+  description: "",
+  unit: "",
+  pricePerUnit: "",
+  vendor: "",
+  source: "",
+  imageUrl: null,
+};
 
 export function Materials() {
   const { user } = useAuth();
@@ -53,19 +70,28 @@ export function Materials() {
     mutationFn: async () => {
       const payload = {
         name: form.name.trim(),
+        description: form.description.trim() || undefined,
         unit: form.unit.trim() || "ชิ้น",
         pricePerUnit: Number(form.pricePerUnit) || 0,
         vendor: form.vendor.trim() || undefined,
+        source: form.source.trim() || undefined,
       };
       if (form.editId) {
         return (await api.put(`/materials/${form.editId}`, payload)).data;
       }
       return (await api.post("/materials", payload)).data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       invalidate();
       showToast(form.editId ? "บันทึกการแก้ไขแล้ว" : "เพิ่มวัสดุใหม่เรียบร้อย");
-      setForm(emptyForm);
+      // ถ้าเป็นการเพิ่มใหม่ ให้เปิดฟอร์มค้างไว้ในโหมดแก้ไข เพื่อให้แนบรูปภาพต่อได้ทันที
+      // (ต้องมี id ของวัสดุก่อนถึงจะอัปโหลดรูปผูกกับมันได้)
+      const material = (data as { material: Material }).material;
+      if (!form.editId && material) {
+        setForm((f) => ({ ...f, editId: material.id, imageUrl: material.imageUrl }));
+      } else {
+        setForm(emptyForm);
+      }
     },
     onError: (err) => showToast(getApiErrorMessage(err)),
   });
@@ -89,7 +115,17 @@ export function Materials() {
   }
 
   function openEdit(m: Material) {
-    setForm({ open: true, editId: m.id, name: m.name, unit: m.unit, pricePerUnit: String(m.pricePerUnit), vendor: m.vendor ?? "" });
+    setForm({
+      open: true,
+      editId: m.id,
+      name: m.name,
+      description: m.description ?? "",
+      unit: m.unit,
+      pricePerUnit: String(m.pricePerUnit),
+      vendor: m.vendor ?? "",
+      source: m.source ?? "",
+      imageUrl: m.imageUrl,
+    });
   }
 
   return (
@@ -115,7 +151,7 @@ export function Materials() {
       {form.open && (
         <form onSubmit={onSubmit} className="mb-[18px] rounded-xl border border-primary bg-surface p-5 shadow-card">
           <div className="mb-4 text-[15px] font-bold">{form.editId ? "แก้ไขรายการวัสดุ" : "เพิ่มรายการวัสดุใหม่"}</div>
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="ชื่อวัสดุ">
               <input
                 autoFocus
@@ -150,14 +186,46 @@ export function Materials() {
                 className="w-full rounded-lg border border-border bg-surface px-[11px] py-2.5 text-[13.5px] text-text outline-none"
               />
             </Field>
+            <Field label="แหล่งที่มา (URL เว็บไซต์)">
+              <input
+                value={form.source}
+                onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
+                placeholder="https://..."
+                className="w-full rounded-lg border border-border bg-surface px-[11px] py-2.5 text-[13.5px] text-text outline-none"
+              />
+            </Field>
+            <Field label="รายละเอียดสินค้า">
+              <input
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="สเปก/รายละเอียดเพิ่มเติม"
+                className="w-full rounded-lg border border-border bg-surface px-[11px] py-2.5 text-[13.5px] text-text outline-none"
+              />
+            </Field>
           </div>
+
+          {form.editId && (
+            <div className="mt-3.5">
+              <label className="mb-1.5 block text-[12.5px] font-semibold text-text-2">รูปภาพ (ถ้ามี)</label>
+              <ImageUpload
+                endpoint={`/materials/${form.editId}/image`}
+                fieldName="image"
+                currentUrl={form.imageUrl}
+                onUploaded={(url) => {
+                  setForm((f) => ({ ...f, imageUrl: url }));
+                  invalidate();
+                }}
+              />
+            </div>
+          )}
+
           <div className="mt-[18px] flex justify-end gap-2.5">
             <button
               type="button"
               onClick={() => setForm(emptyForm)}
               className="rounded-lg border border-border bg-surface px-4 py-2.5 text-[13.5px] font-semibold text-text-2"
             >
-              ยกเลิก
+              {form.editId ? "เสร็จสิ้น" : "ยกเลิก"}
             </button>
             <button
               type="submit"
@@ -185,7 +253,8 @@ export function Materials() {
         <table className="w-full border-collapse text-[13.5px]">
           <thead>
             <tr className="bg-surface-2 text-left text-text-3">
-              <th className="px-[18px] py-[11px] font-semibold">รหัส</th>
+              <th className="w-[52px] px-[18px] py-[11px] font-semibold"></th>
+              <th className="px-3 py-[11px] font-semibold">รหัส</th>
               <th className="px-3 py-[11px] font-semibold">ชื่อวัสดุ</th>
               <th className="px-3 py-[11px] font-semibold">หน่วยนับ</th>
               <th className="px-3 py-[11px] text-right font-semibold">ราคา/หน่วย</th>
@@ -196,8 +265,20 @@ export function Materials() {
           <tbody>
             {filtered.map((m) => (
               <tr key={m.id} className="border-t border-border">
-                <td className="px-[18px] py-3 font-mono text-[12.5px] text-text-2">{m.code}</td>
-                <td className="px-3 py-3 font-medium">{m.name}</td>
+                <td className="px-[18px] py-2">
+                  <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-2 text-text-3">
+                    {m.imageUrl ? (
+                      <img src={m.imageUrl} alt={m.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[10px]">-</span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-3 py-3 font-mono text-[12.5px] text-text-2">{m.code}</td>
+                <td className="px-3 py-3">
+                  <div className="font-medium">{m.name}</div>
+                  {m.description && <div className="text-[12px] text-text-3">{m.description}</div>}
+                </td>
                 <td className="px-3 py-3 text-text-2">{m.unit}</td>
                 <td className="px-3 py-3 text-right font-semibold">{fmt(m.pricePerUnit)}</td>
                 <td className="px-3 py-3 text-text-2">{m.vendor}</td>
@@ -227,7 +308,7 @@ export function Materials() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={canManage ? 6 : 5} className="px-[18px] py-10 text-center text-text-3">
+                <td colSpan={canManage ? 7 : 6} className="px-[18px] py-10 text-center text-text-3">
                   ไม่พบรายการวัสดุ
                 </td>
               </tr>
