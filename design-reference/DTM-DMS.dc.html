@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="light"]{ --bg:#f5f6f8; --surface:#ffffff; --surface-2:#f1f3f6; --border:#e5e8ee; --text:#161c26; --text-2:#586173; --text-3:#8b94a3; --primary:#1e5faa; --primary-h:#1a5296; --primary-soft:#e9f1fb; --success:#16a34a; --success-soft:#e7f6ec; --warn:#b8710a; --warn-soft:#fbf0dd; --danger:#d92d20; --danger-soft:#fbe9e6; --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.05); }
+[data-theme="dark"]{ --bg:#0d1117; --surface:#161b22; --surface-2:#1b222c; --border:#282f3a; --text:#e6e9ef; --text-2:#9aa4b3; --text-3:#6b7484; --primary:#4f8fd6; --primary-h:#5f9ae0; --primary-soft:#16273c; --success:#3fb950; --success-soft:#132a1c; --warn:#d3922f; --warn-soft:#2a2213; --danger:#f0796a; --danger-soft:#2c1815; --shadow:0 1px 2px rgba(0,0,0,.5); }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);font-family:'IBM Plex Sans Thai','IBM Plex Sans',system-ui,sans-serif;color:var(--text)}
+input,select,button,textarea{font-family:inherit}
+::placeholder{color:var(--text-3)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;border:2px solid var(--bg)}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@media print{
+  @page{ margin:14mm; }
+  html,body{ background:#fff !important; }
+  aside, header, [data-noprint]{ display:none !important; }
+  main{ overflow:visible !important; padding:0 !important; background:#fff !important; }
+  [data-doc-scroll]{ gap:0 !important; }
+  [data-doc-paper]{ box-shadow:none !important; border-radius:0 !important; width:100% !important; padding:0 !important; break-inside:avoid; page-break-after:always; }
+  [data-doc-paper]:last-child{ page-break-after:auto; }
+}
+</style>
+</helmet>
+
+<div data-theme="{{ resolved }}" style="min-height:100vh;background:var(--bg);color:var(--text)">
+
+  <!-- ===================== LOGIN ===================== -->
+  <sc-if value="{{ notLoggedIn }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;min-height:100vh">
+    <div style="flex:1.1;background:linear-gradient(150deg,#1a5296,#1e5faa 55%,#2b74c4);color:#fff;padding:64px 60px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden">
+      <div style="position:absolute;right:-80px;top:-80px;width:320px;height:320px;border:1px solid rgba(255,255,255,.14);border-radius:50%"></div>
+      <div style="position:absolute;right:40px;bottom:-120px;width:260px;height:260px;border:1px solid rgba(255,255,255,.1);border-radius:50%"></div>
+      <div style="display:flex;align-items:center;gap:13px;position:relative">
+        <div style="width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M14 4v5h5"/><path d="M8 13h8M8 17h5"/></svg>
+        </div>
+        <div style="font-weight:700;font-size:19px;letter-spacing:.3px">DTM&#8209;DMS</div>
+      </div>
+      <div style="position:relative;max-width:440px">
+        <div style="font-size:34px;font-weight:700;line-height:1.3;margin-bottom:18px">ระบบสารสนเทศเพื่อการบริหารจัดการเอกสารวัสดุฝึกประจำแผนกวิชา</div>
+        <div style="font-size:15px;line-height:1.7;color:rgba(255,255,255,.82)">บริหารจัดการรายการวัสดุฝึก ตั้งแต่การเสนอรายการ การอนุมัติตามลำดับขั้น จนถึงการออกเอกสารสรุปเพื่อจัดซื้อ (สผ.1.1 / สผ.1.2 / สผ.1.3)</div>
+      </div>
+      <div style="position:relative;display:flex;gap:26px;font-size:13px;color:rgba(255,255,255,.75)">
+        <div><div style="font-size:22px;font-weight:700;color:#fff">6 ลำดับ</div>ขั้นการอนุมัติ</div>
+        <div><div style="font-size:22px;font-weight:700;color:#fff">9 บทบาท</div>สิทธิ์การใช้งาน (RBAC)</div>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px">
+      <div style="width:100%;max-width:380px">
+        <div style="font-size:24px;font-weight:700;margin-bottom:6px">เข้าสู่ระบบ</div>
+        <div style="font-size:14px;color:var(--text-2);margin-bottom:28px">ลงชื่อเข้าใช้ด้วยบัญชี RMS ของสถานศึกษา</div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:var(--text-2)">ชื่อผู้ใช้ (RMS Account)</label>
+        <input value="{{ username }}" onInput="{{ onUser }}" style="width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font-size:14px;margin-bottom:16px;outline:none" />
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:var(--text-2)">รหัสผ่าน</label>
+        <input type="password" value="{{ password }}" onInput="{{ onPass }}" style="width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font-size:14px;margin-bottom:22px;outline:none" />
+        <button onClick="{{ doLogin }}" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--primary-h)">เข้าสู่ระบบ</button>
+        <div style="margin-top:18px;padding:12px 14px;background:var(--surface-2);border-radius:9px;font-size:12.5px;color:var(--text-2);line-height:1.6">
+          <b style="color:var(--text)">เดโม:</b> หลังเข้าสู่ระบบ สามารถสลับบทบาท (Role) ได้จากมุมขวาบนของแถบเมนู เพื่อดูสิทธิ์การเข้าถึงหน้าจอที่แตกต่างกัน
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== APP SHELL ===================== -->
+  <sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;min-height:100vh">
+
+    <!-- SIDEBAR -->
+    <aside style="width:{{ sidebarW }};flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .16s;position:sticky;top:0;height:100vh">
+      <div style="height:60px;display:flex;align-items:center;gap:11px;padding:0 18px;border-bottom:1px solid var(--border)">
+        <div style="width:34px;height:34px;flex:none;border-radius:9px;background:var(--primary);display:flex;align-items:center;justify-content:center">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M14 4v5h5"/></svg>
+        </div>
+        <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><div style="font-weight:700;font-size:16px;letter-spacing:.2px">DTM&#8209;DMS</div></sc-if>
+      </div>
+
+      <nav style="padding:14px 12px;display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto">
+        <div onClick="{{ goDashboard }}" style="display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:9px;cursor:pointer;font-size:14px;white-space:nowrap;overflow:hidden;{{ navDashboard }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span>แดชบอร์ด</span></sc-if>
+        </div>
+        <sc-if value="{{ mShowRequest }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ goRequest }}" style="display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:9px;cursor:pointer;font-size:14px;white-space:nowrap;overflow:hidden;{{ navRequest }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><path d="M12 5v14M5 12h14"/></svg>
+          <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span>กรอกรายการวัสดุฝึก</span></sc-if>
+        </div>
+        </sc-if>
+        <sc-if value="{{ mShowMaterials }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ goMaterials }}" style="display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:9px;cursor:pointer;font-size:14px;white-space:nowrap;overflow:hidden;{{ navMaterials }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><path d="M21 8V7l-9-4-9 4v1l9 4 9-4Z"/><path d="M3 8v9l9 4 9-4V8"/><path d="M12 12v9"/></svg>
+          <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span>จัดการรายการวัสดุ</span></sc-if>
+        </div>
+        </sc-if>
+        <sc-if value="{{ mShowWorkflow }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ goWorkflow }}" style="display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:9px;cursor:pointer;font-size:14px;white-space:nowrap;overflow:hidden;{{ navWorkflow }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span>ติดตามสถานะอนุมัติ</span></sc-if>
+        </div>
+        </sc-if>
+        <sc-if value="{{ mShowDocs }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ goDocs }}" style="display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:9px;cursor:pointer;font-size:14px;white-space:nowrap;overflow:hidden;{{ navDocs }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+          <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span>เอกสาร สผ.1.1 – สผ.1.3</span></sc-if>
+        </div>
+        </sc-if>
+        <sc-if value="{{ mShowAdmin }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ goAdmin }}" style="display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:9px;cursor:pointer;font-size:14px;white-space:nowrap;overflow:hidden;{{ navAdmin }}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.4"/><path d="M16 20a4.7 4.7 0 0 1 5.5-4.6"/></svg>
+          <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span>จัดการผู้ใช้/สิทธิ์</span></sc-if>
+        </div>
+        </sc-if>
+      </nav>
+
+      <div style="padding:12px;border-top:1px solid var(--border)">
+        <div onClick="{{ doLogout }}" style="display:flex;align-items:center;gap:12px;padding:10px 11px;border-radius:9px;cursor:pointer;font-size:14px;color:var(--text-2);white-space:nowrap;overflow:hidden" style-hover="background:var(--surface-2)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex:none"><path d="M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3"/><path d="M10 12H3M6 8l-4 4 4 4"/></svg>
+          <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}"><span>ออกจากระบบ</span></sc-if>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN COLUMN -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <!-- TOPBAR -->
+      <header style="height:60px;flex:none;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:20">
+        <div style="display:flex;align-items:center;gap:14px">
+          <button onClick="{{ toggleSidebar }}" style="width:36px;height:36px;border:1px solid var(--border);background:var(--surface);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2)" style-hover="background:var(--surface-2)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div style="font-size:15px;font-weight:600;color:var(--text-2)">แผนกวิชาเทคโนโลยีสารสนเทศ</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px">
+          <!-- theme toggle -->
+          <div style="display:flex;background:var(--surface-2);border-radius:9px;padding:3px;gap:2px">
+            <button onClick="{{ setLight }}" title="Light" style="width:32px;height:30px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;{{ btnLight }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
+            </button>
+            <button onClick="{{ setDark }}" title="Dark" style="width:32px;height:30px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;{{ btnDark }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"/></svg>
+            </button>
+            <button onClick="{{ setSystem }}" title="System" style="width:32px;height:30px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;{{ btnSystem }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+            </button>
+          </div>
+
+          <div style="width:1px;height:26px;background:var(--border)"></div>
+
+          <!-- role switcher -->
+          <div style="position:relative">
+            <button onClick="{{ toggleRoleMenu }}" style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:5px 10px 5px 6px;cursor:pointer" style-hover="background:var(--surface-2)">
+              <div style="width:32px;height:32px;border-radius:8px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px">{{ userInitial }}</div>
+              <div style="text-align:left;line-height:1.25">
+                <div style="font-size:13px;font-weight:600;color:var(--text)">{{ userName }}</div>
+                <div style="font-size:11.5px;color:var(--primary);font-weight:600">{{ roleLabel }}</div>
+              </div>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" style="margin-left:2px"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <sc-if value="{{ roleMenuOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;right:0;top:52px;width:270px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 30px rgba(16,24,40,.16);padding:7px;z-index:50;animation:fadein .12s ease">
+              <div style="font-size:11px;font-weight:700;color:var(--text-3);padding:8px 10px 6px;letter-spacing:.4px">สลับบทบาท (เดโม RBAC)</div>
+              <div onClick="{{ pickTeacher }}" style="padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px" style-hover="background:var(--surface-2)">ครูผู้สอน</div>
+              <div onClick="{{ pickDeptHead }}" style="padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px" style-hover="background:var(--surface-2)">หัวหน้าแผนกวิชา</div>
+              <div onClick="{{ pickCurriculum }}" style="padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px" style-hover="background:var(--surface-2)">หัวหน้างานหลักสูตร</div>
+              <div onClick="{{ pickAcademic }}" style="padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px" style-hover="background:var(--surface-2)">รองผอ.ฝ่ายวิชาการ</div>
+              <div onClick="{{ pickPlan }}" style="padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px" style-hover="background:var(--surface-2)">รองผอ.ฝ่ายแผนงานฯ</div>
+              <div onClick="{{ pickDirector }}" style="padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px" style-hover="background:var(--surface-2)">ผู้อำนวยการวิทยาลัย</div>
+              <div onClick="{{ pickAdmin }}" style="padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px" style-hover="background:var(--surface-2)">ผู้ดูแลระบบ (Admin)</div>
+            </div>
+            </sc-if>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main style="flex:1;overflow-y:auto;padding:30px 34px">
+
+        <!-- ---------- DASHBOARD ---------- -->
+        <sc-if value="{{ sDashboard }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:fadein .18s ease">
+          <div style="font-size:22px;font-weight:700;margin-bottom:4px">สวัสดี, {{ userName }}</div>
+          <div style="font-size:14px;color:var(--text-2);margin-bottom:24px">บทบาท: {{ roleLabel }} · ภาคเรียน 1/2568</div>
+
+          <sc-if value="{{ dashTeacher }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">คำขอของฉัน</div>
+              <div style="font-size:28px;font-weight:700">2</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">รายวิชา</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">รออนุมัติ</div>
+              <div style="font-size:28px;font-weight:700;color:var(--warn)">1</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">อยู่ที่ รองผอ.วิชาการ</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">อนุมัติแล้ว</div>
+              <div style="font-size:28px;font-weight:700;color:var(--success)">0</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">พร้อมจัดซื้อ</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">งบประมาณรวมของฉัน</div>
+              <div style="font-size:28px;font-weight:700;color:var(--primary)">฿24,660</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">2 รายวิชา</div>
+            </div>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ dashApprover }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">รออนุมัติ (คิวของฉัน)</div>
+              <div style="font-size:28px;font-weight:700;color:var(--warn)">{{ pendingCount }}</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">คำขอ</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">ครูในแผนก</div>
+              <div style="font-size:28px;font-weight:700">8</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">เสนอครบ 6 คน</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">งบรวมทั้งแผนก</div>
+              <div style="font-size:28px;font-weight:700;color:var(--primary)">฿34,860</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">2 รายวิชาในระบบ</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px">
+              <div style="font-size:13px;color:var(--text-2);margin-bottom:10px">เอกสารเดือนนี้</div>
+              <div style="font-size:28px;font-weight:700;color:var(--success)">3</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px">สผ.1.1 / สผ.1.2 / สผ.1.3</div>
+            </div>
+          </div>
+          </sc-if>
+
+          <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:20px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <div style="font-size:15px;font-weight:700">คำขอล่าสุด</div>
+                <div onClick="{{ goWorkflow }}" style="font-size:13px;color:var(--primary);cursor:pointer;font-weight:600">ดูทั้งหมด</div>
+              </div>
+              <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+                <thead><tr style="color:var(--text-3);text-align:left">
+                  <th style="padding:8px 6px;font-weight:600">รายวิชา</th><th style="padding:8px 6px;font-weight:600">ครูผู้สอน</th><th style="padding:8px 6px;font-weight:600;text-align:right">งบ (฿)</th><th style="padding:8px 6px;font-weight:600;text-align:center">สถานะ</th>
+                </tr></thead>
+                <tbody>
+                  <tr style="border-top:1px solid var(--border)"><td style="padding:11px 6px">ระบบเครือข่ายฯ</td><td style="padding:11px 6px;color:var(--text-2)">สมชาย ใจดี</td><td style="padding:11px 6px;text-align:right">6,660</td><td style="padding:11px 6px;text-align:center"><span style="background:var(--primary-soft);color:var(--primary);padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600">รอพิจารณา</span></td></tr>
+                  <tr style="border-top:1px solid var(--border)"><td style="padding:11px 6px">การเขียนโปรแกรมควบคุมฯ</td><td style="padding:11px 6px;color:var(--text-2)">สมชาย ใจดี</td><td style="padding:11px 6px;text-align:right">11,800</td><td style="padding:11px 6px;text-align:center"><span style="background:var(--success-soft);color:var(--success);padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600">อนุมัติแล้ว</span></td></tr>
+                  <tr style="border-top:1px solid var(--border)"><td style="padding:11px 6px">การติดตั้งระบบปฏิบัติการ</td><td style="padding:11px 6px;color:var(--text-2)">พิมพ์ชนก ศรีสุข</td><td style="padding:11px 6px;text-align:right">4,200</td><td style="padding:11px 6px;text-align:center"><span style="background:var(--danger-soft);color:var(--danger);padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600">ตีกลับ</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:20px">
+              <div style="font-size:15px;font-weight:700;margin-bottom:16px">ทางลัด</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-if value="{{ mShowRequest }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ goRequest }}" style="display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:10px;cursor:pointer" style-hover="border-color:var(--primary);background:var(--primary-soft)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg>
+                  <div style="font-size:14px;font-weight:600">กรอกรายการวัสดุฝึกใหม่</div>
+                </div>
+                </sc-if>
+                <div onClick="{{ goDocs }}" style="display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:10px;cursor:pointer" style-hover="border-color:var(--primary);background:var(--primary-soft)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.9"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg>
+                  <div style="font-size:14px;font-weight:600">ดู/พิมพ์เอกสาร สผ.1.1–1.3</div>
+                </div>
+                <div onClick="{{ goWorkflow }}" style="display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:10px;cursor:pointer" style-hover="border-color:var(--primary);background:var(--primary-soft)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  <div style="font-size:14px;font-weight:600">ติดตามสถานะการอนุมัติ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ---------- MATERIALS MASTER DATA ---------- -->
+        <sc-if value="{{ sMaterials }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fadein .18s ease">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px">
+            <div>
+              <div style="font-size:22px;font-weight:700;margin-bottom:4px">จัดการรายการวัสดุ (Master Data)</div>
+              <div style="font-size:14px;color:var(--text-2)">ทั้งหมด {{ matCount }} รายการ · ชื่อวัสดุ ราคาต่อหน่วย หน่วยนับ และร้านค้า</div>
+            </div>
+            <button onClick="{{ onAddMaterial }}" style="display:flex;align-items:center;gap:8px;background:var(--primary);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--primary-h)">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1"><path d="M12 5v14M5 12h14"/></svg>เพิ่มวัสดุ
+            </button>
+          </div>
+
+          <sc-if value="{{ mFormOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--surface);border:1px solid var(--primary);border-radius:12px;box-shadow:var(--shadow);padding:20px;margin-bottom:18px">
+            <div style="font-size:15px;font-weight:700;margin-bottom:16px">{{ mFormTitle }}</div>
+            <div style="display:grid;grid-template-columns:120px 1fr 130px 150px 1fr;gap:14px;align-items:end">
+              <div><label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px">รหัส</label><input value="{{ fCode }}" disabled style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);color:var(--text-2);font-size:13.5px"/></div>
+              <div><label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px">ชื่อวัสดุ</label><input value="{{ fName }}" onInput="{{ onFName }}" placeholder="เช่น สาย UTP CAT6" style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13.5px;outline:none"/></div>
+              <div><label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px">หน่วยนับ</label><input value="{{ fUnit }}" onInput="{{ onFUnit }}" placeholder="ตัว/กล่อง" style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13.5px;outline:none"/></div>
+              <div><label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px">ราคา/หน่วย (฿)</label><input value="{{ fPrice }}" onInput="{{ onFPrice }}" type="number" placeholder="0" style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13.5px;outline:none"/></div>
+              <div><label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px">ร้านค้า/แหล่งจัดซื้อ</label><input value="{{ fShop }}" onInput="{{ onFShop }}" placeholder="ชื่อร้าน" style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13.5px;outline:none"/></div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+              <button onClick="{{ cancelForm }}" style="padding:9px 16px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer">ยกเลิก</button>
+              <button onClick="{{ saveMaterial }}" style="padding:9px 20px;border:none;background:var(--primary);color:#fff;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:var(--primary-h)">บันทึก</button>
+            </div>
+          </div>
+          </sc-if>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+              <div style="position:relative;flex:1;max-width:340px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" style="position:absolute;left:11px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+                <input value="{{ mQuery }}" onInput="{{ onSearch }}" placeholder="ค้นหาชื่อวัสดุหรือรหัส..." style="width:100%;padding:9px 11px 9px 34px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:13.5px;outline:none"/>
+              </div>
+            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+              <thead><tr style="color:var(--text-3);text-align:left;background:var(--surface-2)">
+                <th style="padding:11px 18px;font-weight:600">รหัส</th><th style="padding:11px 12px;font-weight:600">ชื่อวัสดุ</th><th style="padding:11px 12px;font-weight:600">หน่วยนับ</th><th style="padding:11px 12px;font-weight:600;text-align:right">ราคา/หน่วย</th><th style="padding:11px 12px;font-weight:600">ร้านค้า</th><th style="padding:11px 18px;font-weight:600;text-align:center;width:110px">จัดการ</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ materialsView }}" as="m" hint-placeholder-count="6">
+                <tr style="border-top:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-family:'IBM Plex Mono',monospace;color:var(--text-2);font-size:12.5px">{{ m.code }}</td>
+                  <td style="padding:12px 12px;font-weight:500">{{ m.name }}</td>
+                  <td style="padding:12px 12px;color:var(--text-2)">{{ m.unit }}</td>
+                  <td style="padding:12px 12px;text-align:right;font-weight:600">{{ m.priceFmt }}</td>
+                  <td style="padding:12px 12px;color:var(--text-2)">{{ m.shop }}</td>
+                  <td style="padding:12px 18px">
+                    <div style="display:flex;gap:6px;justify-content:center">
+                      <button onClick="{{ m.onEdit }}" title="แก้ไข" style="width:30px;height:30px;border:1px solid var(--border);background:var(--surface);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2)" style-hover="border-color:var(--primary);color:var(--primary)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 20h4L18 10l-4-4L4 16v4Z"/><path d="M13 5l4 4"/></svg>
+                      </button>
+                      <button onClick="{{ m.onDelete }}" title="ลบ" style="width:30px;height:30px;border:1px solid var(--border);background:var(--surface);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2)" style-hover="border-color:var(--danger);color:var(--danger)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ---------- REQUEST FORM ---------- -->
+        <sc-if value="{{ sRequest }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fadein .18s ease;max-width:1000px">
+          <div style="font-size:22px;font-weight:700;margin-bottom:4px">กรอกรายการวัสดุฝึกต่อรายวิชา</div>
+          <div style="font-size:14px;color:var(--text-2);margin-bottom:22px">เลือกรายวิชา ระบุจำนวนนักเรียน แล้วเพิ่มรายการวัสดุฝึกที่ต้องใช้</div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:20px;margin-bottom:18px">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px">
+              <div>
+                <label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:7px">รายวิชา</label>
+                <select value="{{ course }}" onChange="{{ onCourse }}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;outline:none">
+                  <option value="net">30901-2001 ระบบเครือข่ายคอมพิวเตอร์เบื้องต้น</option>
+                  <option value="dev">30901-2105 การเขียนโปรแกรมควบคุมอุปกรณ์</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:7px">ภาคเรียน</label>
+                <input value="{{ term }}" onInput="{{ onTerm }}" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;outline:none"/>
+              </div>
+              <div>
+                <label style="display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:7px">จำนวนนักเรียน/ห้อง</label>
+                <input value="{{ students }}" onInput="{{ onStudents }}" type="number" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;outline:none"/>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px">
+            <div style="padding:15px 18px;border-bottom:1px solid var(--border);font-size:15px;font-weight:700">รายการวัสดุฝึก ({{ lineCount }} รายการ)</div>
+            <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+              <thead><tr style="color:var(--text-3);text-align:left;background:var(--surface-2)">
+                <th style="padding:10px 18px;font-weight:600">วัสดุ</th><th style="padding:10px 12px;font-weight:600">หน่วย</th><th style="padding:10px 12px;font-weight:600;text-align:right">ราคา/หน่วย</th><th style="padding:10px 12px;font-weight:600;text-align:center;width:110px">จำนวน</th><th style="padding:10px 12px;font-weight:600;text-align:right">รวม (฿)</th><th style="padding:10px 18px;width:50px"></th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ linesView }}" as="l" hint-placeholder-count="4">
+                <tr style="border-top:1px solid var(--border)">
+                  <td style="padding:11px 18px;font-weight:500">{{ l.name }}</td>
+                  <td style="padding:11px 12px;color:var(--text-2)">{{ l.unit }}</td>
+                  <td style="padding:11px 12px;text-align:right">{{ l.priceFmt }}</td>
+                  <td style="padding:11px 12px;text-align:center"><input value="{{ l.qty }}" onInput="{{ l.onQty }}" type="number" style="width:74px;padding:6px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-size:13.5px;text-align:center;outline:none"/></td>
+                  <td style="padding:11px 12px;text-align:right;font-weight:600">{{ l.subFmt }}</td>
+                  <td style="padding:11px 18px"><button onClick="{{ l.onRemove }}" style="width:28px;height:28px;border:1px solid var(--border);background:var(--surface);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-3)" style-hover="border-color:var(--danger);color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></td>
+                </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <div style="padding:14px 18px;border-top:1px solid var(--border);background:var(--surface-2);display:flex;gap:12px;align-items:end">
+              <div style="flex:1">
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px">เพิ่มวัสดุ</label>
+                <select value="{{ newCode }}" onChange="{{ onNewCode }}" style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13.5px;outline:none">
+                  <sc-for list="{{ materials }}" as="mat" hint-placeholder-count="6"><option value="{{ mat.code }}">{{ mat.name }}</option></sc-for>
+                </select>
+              </div>
+              <div style="width:120px">
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px">จำนวน</label>
+                <input value="{{ newQty }}" onInput="{{ onNewQty }}" type="number" style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13.5px;outline:none"/>
+              </div>
+              <button onClick="{{ addLine }}" style="display:flex;align-items:center;gap:7px;padding:9px 16px;border:1px solid var(--primary);background:var(--primary-soft);color:var(--primary);border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M12 5v14M5 12h14"/></svg>เพิ่มรายการ
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 22px">
+            <div>
+              <div style="font-size:13px;color:var(--text-2)">งบประมาณรวมโดยประมาณ</div>
+              <div style="font-size:26px;font-weight:700;color:var(--primary)">฿ {{ requestTotalFmt }}</div>
+            </div>
+            <button onClick="{{ submitRequest }}" style="display:flex;align-items:center;gap:9px;background:var(--primary);color:#fff;border:none;border-radius:9px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--primary-h)">
+              ส่งเข้าสู่กระบวนการอนุมัติ
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ---------- DOCUMENTS ---------- -->
+        <sc-if value="{{ sDocs }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fadein .18s ease">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px">
+            <div>
+              <div style="font-size:22px;font-weight:700;margin-bottom:4px">เอกสารสรุปเพื่อจัดซื้อ</div>
+              <div style="font-size:14px;color:var(--text-2)">แผนกวิชาเทคโนโลยีสารสนเทศ · ภาคเรียน 1/2568</div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button onClick="{{ printQuote }}" style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);border-radius:9px;padding:10px 15px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:var(--surface-2)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M6 14h12v7H6z"/></svg>พิมพ์ใบประมาณราคา
+              </button>
+              <button onClick="{{ exportPdf }}" style="display:flex;align-items:center;gap:8px;background:var(--primary);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:var(--primary-h)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>Export PDF
+              </button>
+            </div>
+          </div>
+
+          <div data-noprint style="display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:10px;width:fit-content;margin-bottom:22px">
+            <button onClick="{{ setSp11 }}" style="padding:8px 18px;border:none;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;{{ tabSp11 }}">สผ.1.1 · ประมาณการรวมทั้งแผนก</button>
+            <button onClick="{{ setSp12 }}" style="padding:8px 18px;border:none;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;{{ tabSp12 }}">สผ.1.2 · สรุปรายวิชา</button>
+            <button onClick="{{ setSp13 }}" style="padding:8px 18px;border:none;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;{{ tabSp13 }}">สผ.1.3 · รายละเอียดตามรายวิชา</button>
+          </div>
+
+          <div data-doc-scroll style="display:flex;flex-direction:column;align-items:center;gap:26px">
+
+            <!-- ========== สผ.1.1 : แบบประมาณการค่าวัสดุฝึก (รวมทั้งแผนก) ========== -->
+            <sc-if value="{{ isSp11 }}" hint-placeholder-val="{{ true }}">
+            <div data-doc-paper style="background:#fff;color:#1a1a1a;width:794px;max-width:100%;box-shadow:0 6px 28px rgba(16,24,40,.16);border-radius:4px;padding:44px 50px;font-family:'IBM Plex Sans Thai',sans-serif">
+              <div style="text-align:right;font-size:12px;color:#666;margin-bottom:2px">แบบ สผ.๑.๑</div>
+              <div style="text-align:center;font-size:18px;font-weight:700;line-height:1.35">{{ college }}</div>
+              <div style="text-align:center;font-size:15.5px;font-weight:600;margin-bottom:2px">แบบประมาณการค่าวัสดุฝึก (สผ.๑.๑)</div>
+              <div style="text-align:center;font-size:13.5px;color:#444;margin-bottom:14px">{{ dept }} · {{ termText }}</div>
+              <div style="display:flex;gap:28px;font-size:13.5px;margin-bottom:8px;justify-content:center;color:#333">
+                <span>ระดับชั้น ปวส. &nbsp;จำนวนนักศึกษา <b>{{ totalStudents }}</b> คน</span>
+                <span>รวมทั้งสิ้น <b>{{ totalStudents }}</b> คน</span>
+              </div>
+              <div style="font-size:13.5px;margin-bottom:14px;color:#333">ประมาณการค่าวัสดุฝึก ดังรายละเอียดที่แนบ รวมเป็นเงินทั้งสิ้น <b>{{ sp11GrandFmt }}</b> บาท ({{ sp11GrandText }})</div>
+              <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                <thead><tr style="background:#eef4fb">
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:42px">ลำดับ</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 8px">รายการ</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:56px">จำนวน</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:64px">หน่วย</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:92px">ราคาต่อหน่วย</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:96px">จำนวนเงิน</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:70px">หมายเหตุ</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ sp11rows }}" as="r" hint-placeholder-count="9">
+                  <tr>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ r.no }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px">{{ r.name }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ r.qty }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ r.unit }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px;text-align:right">{{ r.priceFmt }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px;text-align:right">{{ r.subFmt }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px"></td>
+                  </tr>
+                  </sc-for>
+                  <tr style="background:#f6f8fb;font-weight:700">
+                    <td colspan="5" style="border:1px solid #b9c4d4;padding:7px 8px;text-align:right">รวมทั้งสิ้น</td>
+                    <td style="border:1px solid #b9c4d4;padding:7px 8px;text-align:right">{{ sp11GrandFmt }}</td>
+                    <td style="border:1px solid #b9c4d4;padding:7px"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="display:flex;justify-content:space-around;margin-top:46px;font-size:13px;text-align:center">
+                <div style="width:44%"><div style="margin-bottom:22px">ลงชื่อ .....................................</div><div>( {{ headName }} )</div><div style="color:#666">ผู้สรุป</div></div>
+                <div style="width:44%"><div style="margin-bottom:22px">ลงชื่อ .....................................</div><div>( {{ headName }} )</div><div style="color:#666">หัวหน้าแผนกวิชา</div></div>
+              </div>
+            </div>
+            </sc-if>
+
+            <!-- ========== สผ.1.2 : แบบสรุปการขอใช้วัสดุฝึกรายวิชา (แผ่น/วิชา) ========== -->
+            <sc-if value="{{ isSp12 }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ sp12sheets }}" as="c" hint-placeholder-count="2">
+            <div data-doc-paper style="background:#fff;color:#1a1a1a;width:794px;max-width:100%;box-shadow:0 6px 28px rgba(16,24,40,.16);border-radius:4px;padding:44px 50px;font-family:'IBM Plex Sans Thai',sans-serif">
+              <div style="text-align:right;font-size:12px;color:#666;margin-bottom:2px">แบบ สผ.๑.๒</div>
+              <div style="text-align:center;font-size:18px;font-weight:700;line-height:1.35">{{ college }}</div>
+              <div style="text-align:center;font-size:15.5px;font-weight:600;margin-bottom:8px">แบบสรุปการขอใช้วัสดุฝึกรายวิชา (สผ.๑.๒)</div>
+              <div style="font-size:13.5px;margin-bottom:4px"><b>วิชา</b> {{ c.name }} &nbsp;<span style="color:#666">({{ c.code }})</span> &nbsp;·&nbsp; ครูผู้สอน {{ c.teacher }}</div>
+              <table style="width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 14px">
+                <sc-for list="{{ c.levels }}" as="lv" hint-placeholder-count="5">
+                <tr>
+                  <td style="border:1px solid #cdd6e2;padding:5px 8px;width:34%">ระดับชั้น {{ lv.label }}</td>
+                  <td style="border:1px solid #cdd6e2;padding:5px 8px;width:33%">จำนวน {{ lv.rooms }} ห้อง</td>
+                  <td style="border:1px solid #cdd6e2;padding:5px 8px;width:33%">จำนวน {{ lv.students }} คน</td>
+                </tr>
+                </sc-for>
+              </table>
+              <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                <thead><tr style="background:#eef4fb">
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:42px">ลำดับ</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 8px">รายการ</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:56px">จำนวน</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:64px">หน่วย</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:92px">ราคาต่อหน่วย</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:96px">จำนวนเงิน</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:70px">หมายเหตุ</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ c.rows }}" as="row" hint-placeholder-count="4">
+                  <tr>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ row.no }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px">{{ row.name }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ row.qty }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ row.unit }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px;text-align:right">{{ row.priceFmt }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px;text-align:right">{{ row.subFmt }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px"></td>
+                  </tr>
+                  </sc-for>
+                  <tr style="background:#f6f8fb;font-weight:700">
+                    <td colspan="5" style="border:1px solid #b9c4d4;padding:7px 8px;text-align:right">รวมทั้งสิ้น</td>
+                    <td style="border:1px solid #b9c4d4;padding:7px 8px;text-align:right">{{ c.totalFmt }}</td>
+                    <td style="border:1px solid #b9c4d4;padding:7px"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="font-size:13px;margin-top:8px">(ตัวอักษร) {{ c.totalText }}</div>
+              <div style="display:flex;justify-content:space-around;margin-top:44px;font-size:13px;text-align:center">
+                <div style="width:44%"><div style="margin-bottom:22px">ลงชื่อ .....................................</div><div>( {{ c.teacher }} )</div><div style="color:#666">ผู้สรุป / ครูผู้สอน</div></div>
+                <div style="width:44%"><div style="margin-bottom:22px">ลงชื่อ .....................................</div><div>( {{ headName }} )</div><div style="color:#666">หัวหน้าแผนกวิชา</div></div>
+              </div>
+            </div>
+            </sc-for>
+            </sc-if>
+
+            <!-- ========== สผ.1.3 : รายละเอียดการขอใช้วัสดุฝึกตามรายวิชา (แผ่น/วิชา) ========== -->
+            <sc-if value="{{ isSp13 }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ sp13sheets }}" as="c" hint-placeholder-count="2">
+            <div data-doc-paper style="background:#fff;color:#1a1a1a;width:794px;max-width:100%;box-shadow:0 6px 28px rgba(16,24,40,.16);border-radius:4px;padding:44px 50px;font-family:'IBM Plex Sans Thai',sans-serif">
+              <div style="text-align:right;font-size:12px;color:#666;margin-bottom:2px">แบบ สผ.๑.๓</div>
+              <div style="text-align:center;font-size:18px;font-weight:700;line-height:1.35">{{ college }}</div>
+              <div style="text-align:center;font-size:15.5px;font-weight:600;margin-bottom:8px">รายละเอียดการขอใช้วัสดุฝึกตามรายวิชา (สผ.๑.๓)</div>
+              <div style="font-size:13.5px;margin-bottom:10px">แผนกวิชา {{ deptShort }} &nbsp;·&nbsp; ข้าพเจ้า <b>{{ c.teacher }}</b> มีความประสงค์ขอใช้วัสดุฝึก ในภาคเรียนที่ {{ termShort }}</div>
+              <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px">
+                <thead><tr style="background:#eef4fb">
+                  <th style="border:1px solid #b9c4d4;padding:6px">ชื่อวิชา</th>
+                  <th style="border:1px solid #b9c4d4;padding:6px;width:88px">รหัสวิชา</th>
+                  <th style="border:1px solid #b9c4d4;padding:6px;width:70px">ปวช./ปวส.</th>
+                  <th style="border:1px solid #b9c4d4;padding:6px;width:72px">ชั้นปี</th>
+                  <th style="border:1px solid #b9c4d4;padding:6px;width:60px">จำนวนห้อง</th>
+                  <th style="border:1px solid #b9c4d4;padding:6px;width:72px">จำนวน นร./นศ</th>
+                </tr></thead>
+                <tbody><tr>
+                  <td style="border:1px solid #cdd6e2;padding:6px">{{ c.name }}</td>
+                  <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ c.code }}</td>
+                  <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ c.level }}</td>
+                  <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ c.levelYear }}</td>
+                  <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ c.rooms }}</td>
+                  <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ c.students }}</td>
+                </tr></tbody>
+              </table>
+              <div style="font-size:12.5px;font-weight:600;margin-bottom:4px;color:#333">รายการขอใช้วัสดุ</div>
+              <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+                <thead><tr style="background:#f2f6fb">
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:42px">ลำดับ</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 8px">ชื่อวัสดุ</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:56px">จำนวน</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:64px">หน่วย</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:92px">ราคาต่อหน่วย</th>
+                  <th style="border:1px solid #b9c4d4;padding:7px 6px;width:96px">จำนวนเงิน</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ c.rows }}" as="row" hint-placeholder-count="4">
+                  <tr>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ row.no }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px">{{ row.name }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ row.qty }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px;text-align:center">{{ row.unit }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px;text-align:right">{{ row.priceFmt }}</td>
+                    <td style="border:1px solid #cdd6e2;padding:6px 8px;text-align:right">{{ row.subFmt }}</td>
+                  </tr>
+                  </sc-for>
+                  <tr style="background:#f6f8fb;font-weight:700">
+                    <td colspan="5" style="border:1px solid #b9c4d4;padding:7px 8px;text-align:right">รวมทั้งสิ้น</td>
+                    <td style="border:1px solid #b9c4d4;padding:7px 8px;text-align:right">{{ c.totalFmt }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="font-size:13px;margin-top:8px">(ตัวอักษร) {{ c.totalText }}</div>
+              <div style="display:flex;justify-content:space-around;margin-top:40px;font-size:13px;text-align:center">
+                <div style="width:44%"><div style="margin-bottom:22px">ลงชื่อ .....................................</div><div>( {{ c.teacher }} )</div><div style="color:#666">ครูผู้สอน</div></div>
+                <div style="width:44%"><div style="margin-bottom:22px">ลงชื่อ .....................................</div><div>( {{ headName }} )</div><div style="color:#666">หัวหน้าแผนกวิชา</div></div>
+              </div>
+              <div style="text-align:right;font-size:11.5px;color:#999;margin-top:10px">หมายเหตุ วิชาละ ๑ แผ่น</div>
+            </div>
+            </sc-for>
+            </sc-if>
+
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ---------- WORKFLOW ---------- -->
+        <sc-if value="{{ sWorkflow }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fadein .18s ease;max-width:820px">
+          <div style="font-size:22px;font-weight:700;margin-bottom:4px">ติดตามสถานะการอนุมัติ</div>
+          <div style="font-size:14px;color:var(--text-2);margin-bottom:22px">คำขอ #REQ-2568-014 · ระบบเครือข่ายคอมพิวเตอร์เบื้องต้น · งบ ฿6,660</div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:26px 28px">
+            <sc-for list="{{ stepsView }}" as="st" hint-placeholder-count="6">
+            <div style="display:flex;gap:16px">
+              <div style="display:flex;flex-direction:column;align-items:center">
+                <div style="width:36px;height:36px;border-radius:50%;background:{{ st.dotSoft }};color:{{ st.dotColor }};border:2px solid {{ st.dotColor }};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none">{{ st.num }}</div>
+                <sc-if value="{{ st.isLast }}" hint-placeholder-val="{{ false }}"><div></div></sc-if>
+                <div style="width:2px;flex:1;min-height:26px;background:{{ st.lineColor }}"></div>
+              </div>
+              <div style="flex:1;padding-bottom:22px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+                  <div style="font-size:15px;font-weight:600">{{ st.role }}</div>
+                  <span style="padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;{{ st.badgeStyle }}">{{ st.badgeLabel }}</span>
+                </div>
+                <div style="font-size:13.5px;color:var(--text-2)">{{ st.name }} · {{ st.date }}</div>
+                <div style="font-size:13px;color:var(--text-3);margin-top:4px">{{ st.note }}</div>
+              </div>
+            </div>
+            </sc-for>
+
+            <sc-if value="{{ canApprove }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:12px;margin-top:8px;padding-top:20px;border-top:1px solid var(--border)">
+              <button onClick="{{ approveCurrent }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--success);color:#fff;border:none;border-radius:9px;padding:12px;font-size:14.5px;font-weight:600;cursor:pointer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>อนุมัติรายการ
+              </button>
+              <button onClick="{{ rejectCurrent }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface);color:var(--danger);border:1px solid var(--danger);border-radius:9px;padding:12px;font-size:14.5px;font-weight:600;cursor:pointer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6 6 18"/></svg>ตีกลับเพื่อแก้ไข
+              </button>
+            </div>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
+
+        <!-- ---------- ADMIN ---------- -->
+        <sc-if value="{{ sAdmin }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fadein .18s ease">
+          <div style="font-size:22px;font-weight:700;margin-bottom:4px">จัดการผู้ใช้และสิทธิ์ (RBAC)</div>
+          <div style="font-size:14px;color:var(--text-2);margin-bottom:22px">ผู้ใช้ทั้งหมด {{ userCount }} คน · ข้อมูลอ้างอิงจากฐานข้อมูล RMS แล้วกำหนดบทบาทในระบบนี้</div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden">
+            <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+              <thead><tr style="color:var(--text-3);text-align:left;background:var(--surface-2)">
+                <th style="padding:12px 18px;font-weight:600">รหัส RMS</th><th style="padding:12px;font-weight:600">ชื่อ-สกุล</th><th style="padding:12px;font-weight:600">แผนก/ฝ่าย</th><th style="padding:12px;font-weight:600;width:230px">บทบาทในระบบ</th><th style="padding:12px;font-weight:600;text-align:center;width:90px">สถานะ</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ usersView }}" as="u" hint-placeholder-count="6">
+                <tr style="border-top:1px solid var(--border)">
+                  <td style="padding:12px 18px;font-family:'IBM Plex Mono',monospace;color:var(--text-2);font-size:12.5px">{{ u.rms }}</td>
+                  <td style="padding:12px;font-weight:500">{{ u.name }}</td>
+                  <td style="padding:12px;color:var(--text-2)">{{ u.dept }}</td>
+                  <td style="padding:12px">
+                    <select value="{{ u.role }}" onChange="{{ u.onRole }}" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;outline:none">
+                      <option value="teacher">ครูผู้สอน</option>
+                      <option value="depthead">หัวหน้าแผนกวิชา</option>
+                      <option value="curriculum">หัวหน้างานหลักสูตร</option>
+                      <option value="deputy_academic">รองผอ.ฝ่ายวิชาการ</option>
+                      <option value="deputy_plan">รองผอ.ฝ่ายแผนงานฯ</option>
+                      <option value="director">ผู้อำนวยการวิทยาลัย</option>
+                      <option value="admin">ผู้ดูแลระบบ</option>
+                    </select>
+                  </td>
+                  <td style="padding:12px;text-align:center"><span style="padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;{{ u.statusStyle }}">{{ u.statusLabel }}</span></td>
+                </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        </sc-if>
+
+      </main>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#161c26;color:#fff;padding:13px 22px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:0 8px 28px rgba(0,0,0,.25);z-index:100;animation:toastin .2s ease;display:flex;align-items:center;gap:10px">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>{{ toast }}
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}">
+const fmt = (n) => Number(n||0).toLocaleString('en-US');
+
+function bahtText(amount) {
+  amount = Math.round(Number(amount||0) * 100) / 100;
+  const digit = ['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+  const unit = ['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน'];
+  function conv(numStr) {
+    let s = '';
+    const len = numStr.length;
+    for (let i = 0; i < len; i++) {
+      const d = +numStr[i];
+      const p = (len - i - 1) % 6;
+      if (d === 0) { if ((len - i - 1) === 6) s += 'ล้าน'; continue; }
+      if (p === 1 && d === 1) s += 'สิบ';
+      else if (p === 1 && d === 2) s += 'ยี่สิบ';
+      else if (p === 0 && d === 1 && len > 1 && i !== 0 && (len - i) % 6 !== 1) s += 'เอ็ด';
+      else if (p === 0 && d === 1 && len > 1 && numStr[i-1] !== undefined) s += 'เอ็ด';
+      else s += digit[d] + unit[p];
+      if ((len - i - 1) === 6) s += 'ล้าน';
+    }
+    return s;
+  }
+  const baht = Math.floor(amount);
+  const satang = Math.round((amount - baht) * 100);
+  let out = (baht === 0 ? 'ศูนย์' : conv(String(baht))) + 'บาท';
+  out += satang === 0 ? 'ถ้วน' : conv(String(satang)) + 'สตางค์';
+  return out;
+}
+
+const ROLES = {
+  teacher:         { label:'ครูผู้สอน',                  name:'สมชาย ใจดี',      dept:'แผนกวิชาเทคโนโลยีสารสนเทศ' },
+  depthead:        { label:'หัวหน้าแผนกวิชา',            name:'วิภาวดี ทองคำ',    dept:'แผนกวิชาเทคโนโลยีสารสนเทศ' },
+  curriculum:      { label:'หัวหน้างานหลักสูตร',         name:'ประสงค์ มั่นคง',   dept:'งานพัฒนาหลักสูตรและการสอน' },
+  deputy_academic: { label:'รองผอ.ฝ่ายวิชาการ',          name:'ดร.อนงค์ วัฒนา',   dept:'ฝ่ายวิชาการ' },
+  deputy_plan:     { label:'รองผอ.ฝ่ายแผนงานฯ',          name:'สุริยา แผนงาม',    dept:'ฝ่ายแผนงานและยุทธศาสตร์' },
+  director:        { label:'ผู้อำนวยการวิทยาลัย',        name:'ดร.บรรจง ผู้นำ',   dept:'ผู้บริหารสูงสุด' },
+  admin:           { label:'ผู้ดูแลระบบ (Admin)',        name:'ทีมสารสนเทศ',      dept:'งานศูนย์ข้อมูลสารสนเทศ' },
+};
+
+const COURSES = {
+  net: { code:'30901-2001', name:'ระบบเครือข่ายคอมพิวเตอร์เบื้องต้น', teacher:'สมชาย ใจดี' },
+  dev: { code:'30901-2105', name:'การเขียนโปรแกรมควบคุมอุปกรณ์',      teacher:'สมชาย ใจดี' },
+};
+
+class Component extends DCLogic {
+  state = {
+    loggedIn: false,
+    screen: 'dashboard',
+    role: 'teacher',
+    roleMenuOpen: false,
+    themeMode: 'light',
+    resolved: 'light',
+    collapsed: false,
+    docTab: 'sp11',
+    username: 'somchai.j',
+    password: 'password',
+    toast: '',
+    mQuery: '',
+    mForm: { open:false, editIndex:-1, code:'', name:'', unit:'', price:'', shop:'' },
+    course: 'net',
+    students: '32',
+    term: '1/2568',
+    newCode: 'MT-006',
+    newQty: '1',
+    materials: [
+      { code:'MT-001', name:'สาย UTP CAT6 (กล่อง 305 ม.)', unit:'กล่อง', price:2450, shop:'ร้านไอทีเน็ตเวิร์ค' },
+      { code:'MT-002', name:'หัวต่อ RJ-45 CAT6',            unit:'ตัว',   price:6,    shop:'ร้านไอทีเน็ตเวิร์ค' },
+      { code:'MT-003', name:'Gigabit Switch 8 Port',        unit:'เครื่อง', price:890, shop:'บจก. คอมเทรด' },
+      { code:'MT-004', name:'Wireless Access Point',        unit:'เครื่อง', price:1250, shop:'บจก. คอมเทรด' },
+      { code:'MT-005', name:'คีมเข้าหัวสาย LAN',            unit:'ด้าม',  price:260,  shop:'ร้านช่างอะไหล่' },
+      { code:'MT-006', name:'บอร์ด Arduino Uno R3',         unit:'บอร์ด', price:320,  shop:'ร้านอิเล็กทรอนิกส์ไทย' },
+      { code:'MT-007', name:'เซนเซอร์อุณหภูมิ DHT22',       unit:'ตัว',   price:145,  shop:'ร้านอิเล็กทรอนิกส์ไทย' },
+      { code:'MT-008', name:'Breadboard 830 จุด',           unit:'ชิ้น',  price:85,   shop:'ร้านอิเล็กทรอนิกส์ไทย' },
+      { code:'MT-009', name:'สายจัมเปอร์ M-M (แพ็ค 40)',    unit:'แพ็ค',  price:45,   shop:'ร้านอิเล็กทรอนิกส์ไทย' },
+      { code:'MT-010', name:'Relay Module 1 Channel',       unit:'ตัว',   price:40,   shop:'ร้านอิเล็กทรอนิกส์ไทย' },
+    ],
+    lines: [
+      { code:'MT-001', qty:2 },
+      { code:'MT-002', qty:100 },
+      { code:'MT-003', qty:4 },
+      { code:'MT-005', qty:6 },
+    ],
+    users: [
+      { rms:'RMS-1042', name:'สมชาย ใจดี',    dept:'เทคโนโลยีสารสนเทศ', role:'teacher',         status:true },
+      { rms:'RMS-1088', name:'วิภาวดี ทองคำ',  dept:'เทคโนโลยีสารสนเทศ', role:'depthead',        status:true },
+      { rms:'RMS-0921', name:'ประสงค์ มั่นคง', dept:'ช่างไฟฟ้ากำลัง',    role:'curriculum',      status:true },
+      { rms:'RMS-0455', name:'ดร.อนงค์ วัฒนา', dept:'ฝ่ายวิชาการ',       role:'deputy_academic', status:true },
+      { rms:'RMS-0460', name:'สุริยา แผนงาม',  dept:'ฝ่ายแผนงาน',        role:'deputy_plan',     status:true },
+      { rms:'RMS-0001', name:'ดร.บรรจง ผู้นำ', dept:'ผู้บริหาร',         role:'director',        status:true },
+      { rms:'RMS-2201', name:'พิมพ์ชนก ศรีสุข', dept:'เทคโนโลยีสารสนเทศ', role:'teacher',        status:false },
+    ],
+    steps: [
+      { role:'ครูผู้สอน (ผู้เสนอ)',       name:'สมชาย ใจดี',    date:'25 มิ.ย. 2568', note:'เสนอรายการวัสดุฝึก 2 รายวิชา', status:'done' },
+      { role:'หัวหน้าแผนกวิชา',          name:'วิภาวดี ทองคำ',  date:'26 มิ.ย. 2568', note:'ตรวจสอบความเหมาะสมของรายการแล้ว', status:'done' },
+      { role:'หัวหน้างานหลักสูตร',       name:'ประสงค์ มั่นคง', date:'27 มิ.ย. 2568', note:'สอดคล้องกับหลักสูตร อนุมัติ', status:'done' },
+      { role:'รองผอ.ฝ่ายวิชาการ',        name:'ดร.อนงค์ วัฒนา', date:'—',             note:'รอการพิจารณา', status:'current' },
+      { role:'รองผอ.ฝ่ายแผนงานฯ',        name:'สุริยา แผนงาม',  date:'—',             note:'ตรวจสอบงบประมาณ', status:'pending' },
+      { role:'ผู้อำนวยการวิทยาลัย',      name:'ดร.บรรจง ผู้นำ', date:'—',             note:'อนุมัติขั้นสุดท้าย', status:'pending' },
+    ],
+  };
+
+  componentDidMount() {
+    this._mq = window.matchMedia('(prefers-color-scheme: dark)');
+    this._onMq = () => { if (this.state.themeMode === 'system') this.applyTheme('system'); };
+    this._mq.addEventListener('change', this._onMq);
+  }
+  componentWillUnmount() { if (this._mq) this._mq.removeEventListener('change', this._onMq); }
+
+  applyTheme(mode) {
+    const resolved = mode === 'system' ? (this._mq && this._mq.matches ? 'dark' : 'light') : mode;
+    this.setState({ themeMode: mode, resolved });
+  }
+
+  showToast(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: '' }), 2600);
+  }
+
+  nav(screen) { this.setState({ screen, roleMenuOpen:false }); }
+  login() { this.setState({ loggedIn:true, screen:'dashboard' }); }
+  logout() { this.setState({ loggedIn:false, role:'teacher', screen:'dashboard' }); }
+  setRole(role) { this.setState({ role, roleMenuOpen:false, screen:'dashboard' }); }
+
+  openAddMaterial() {
+    const n = this.state.materials.length + 1;
+    this.setState({ mForm:{ open:true, editIndex:-1, code:'MT-'+String(n).padStart(3,'0'), name:'', unit:'', price:'', shop:'' } });
+  }
+  openEdit(i) { const m = this.state.materials[i]; this.setState({ mForm:{ open:true, editIndex:i, ...m, price:String(m.price) } }); }
+  setForm(k, v) { this.setState(s => ({ mForm:{ ...s.mForm, [k]:v } })); }
+  saveMaterial() {
+    const f = this.state.mForm;
+    if (!f.name.trim()) { this.showToast('กรุณากรอกชื่อวัสดุ'); return; }
+    const rec = { code:f.code, name:f.name, unit:f.unit||'ชิ้น', price:Number(f.price)||0, shop:f.shop||'-' };
+    this.setState(s => {
+      const arr = s.materials.slice();
+      if (f.editIndex >= 0) arr[f.editIndex] = rec; else arr.push(rec);
+      return { materials:arr, mForm:{ open:false, editIndex:-1, code:'', name:'', unit:'', price:'', shop:'' } };
+    });
+    this.showToast(f.editIndex>=0 ? 'บันทึกการแก้ไขแล้ว' : 'เพิ่มวัสดุใหม่เรียบร้อย');
+  }
+  cancelForm() { this.setState({ mForm:{ open:false, editIndex:-1, code:'', name:'', unit:'', price:'', shop:'' } }); }
+  deleteMaterial(i) { this.setState(s => ({ materials: s.materials.filter((_,x)=>x!==i) })); this.showToast('ลบรายการแล้ว'); }
+
+  addLine() {
+    const code = this.state.newCode;
+    this.setState(s => {
+      const ex = s.lines.find(l => l.code === code);
+      let lines;
+      if (ex) lines = s.lines.map(l => l.code===code ? {...l, qty:Number(l.qty)+Number(s.newQty||1)} : l);
+      else lines = s.lines.concat([{ code, qty:Number(s.newQty)||1 }]);
+      return { lines, newQty:'1' };
+    });
+  }
+  setQty(i, v) { this.setState(s => { const a=s.lines.slice(); a[i]={...a[i], qty:v}; return { lines:a }; }); }
+  removeLine(i) { this.setState(s => ({ lines:s.lines.filter((_,x)=>x!==i) })); }
+  submitRequest() { this.showToast('ส่งคำขอเข้าสู่กระบวนการอนุมัติแล้ว'); this.setState({ screen:'workflow' }); }
+
+  setUserRole(i, v) { this.setState(s => { const a=s.users.slice(); a[i]={...a[i], role:v}; return { users:a }; }); this.showToast('ปรับบทบาทผู้ใช้แล้ว'); }
+  toggleUser(i) { this.setState(s => { const a=s.users.slice(); a[i]={...a[i], status:!a[i].status}; return { users:a }; }); }
+
+  approveCurrent() {
+    this.setState(s => {
+      const steps = s.steps.slice();
+      const ci = steps.findIndex(x => x.status==='current');
+      if (ci >= 0) {
+        steps[ci] = { ...steps[ci], status:'done', date:'4 ก.ค. 2568', note:'อนุมัติเรียบร้อย' };
+        if (steps[ci+1]) steps[ci+1] = { ...steps[ci+1], status:'current' };
+      }
+      return { steps };
+    });
+    this.showToast('อนุมัติรายการเรียบร้อย');
+  }
+  rejectCurrent() {
+    this.setState(s => {
+      const steps = s.steps.slice();
+      const ci = steps.findIndex(x => x.status==='current');
+      if (ci >= 0) steps[ci] = { ...steps[ci], status:'reject', date:'4 ก.ค. 2568', note:'ตีกลับเพื่อแก้ไขรายการ' };
+      return { steps };
+    });
+    this.showToast('ตีกลับคำขอแล้ว');
+  }
+
+  navStyle(key) {
+    return this.state.screen === key
+      ? 'background:var(--primary-soft);color:var(--primary);font-weight:600;'
+      : 'background:transparent;color:var(--text-2);font-weight:500;';
+  }
+  themeBtn(mode) {
+    return this.state.themeMode === mode
+      ? 'background:var(--surface);color:var(--primary);box-shadow:var(--shadow);'
+      : 'background:transparent;color:var(--text-3);';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const r = ROLES[s.role];
+    const isTeacher = s.role === 'teacher';
+    const isDeptHead = s.role === 'depthead';
+    const isApprover = ['depthead','curriculum','deputy_academic','deputy_plan','director'].includes(s.role);
+    const isAdmin = s.role === 'admin';
+
+    const q = s.mQuery.trim().toLowerCase();
+    const materialsView = s.materials
+      .map((m,i)=>({ m, i }))
+      .filter(({m}) => !q || m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q))
+      .map(({m,i}) => ({ code:m.code, name:m.name, unit:m.unit, priceFmt:fmt(m.price), shop:m.shop,
+        onEdit:()=>this.openEdit(i), onDelete:()=>this.deleteMaterial(i) }));
+
+    let total = 0;
+    const linesView = s.lines.map((l,i) => {
+      const m = s.materials.find(x=>x.code===l.code) || {};
+      const sub = (m.price||0)*Number(l.qty||0);
+      total += sub;
+      return { code:l.code, name:m.name||'-', unit:m.unit||'-', priceFmt:fmt(m.price), qty:l.qty, subFmt:fmt(sub),
+        onRemove:()=>this.removeLine(i), onQty:(e)=>this.setQty(i, e.target.value) };
+    });
+
+    const usersView = s.users.map((u,i) => ({ rms:u.rms, name:u.name, dept:u.dept, role:u.role,
+      roleLabel:ROLES[u.role].label, status:u.status, statusLabel:u.status?'ใช้งาน':'ระงับ',
+      statusStyle: u.status ? 'background:var(--success-soft);color:var(--success);' : 'background:var(--surface-2);color:var(--text-3);',
+      onRole:(e)=>this.setUserRole(i, e.target.value) }));
+
+    const stepsView = s.steps.map((st,i) => {
+      const meta = {
+        done:    { color:'var(--success)', soft:'var(--success-soft)', label:'อนุมัติแล้ว' },
+        current: { color:'var(--primary)', soft:'var(--primary-soft)', label:'รอพิจารณา' },
+        pending: { color:'var(--text-3)',  soft:'var(--surface-2)',    label:'ยังไม่ถึงลำดับ' },
+        reject:  { color:'var(--danger)',  soft:'var(--danger-soft)',  label:'ตีกลับ' },
+      }[st.status];
+      return { ...st, num:i+1, dotColor:meta.color, dotSoft:meta.soft, badgeLabel:meta.label,
+        badgeStyle:`background:${meta.soft};color:${meta.color};`,
+        lineColor: st.status==='done' ? 'var(--success)' : 'var(--border)',
+        isLast:i===s.steps.length-1 };
+    });
+
+    const pending = s.steps.some(x=>x.status==='current');
+
+    // ---- official document data (สผ.1.1 / สผ.1.2 / สผ.1.3) ----
+    const college = 'วิทยาลัยพณิชยการบางนา';
+    const deptFull = 'แผนกวิชาเทคโนโลยีสารสนเทศ';
+    const deptShort = 'เทคโนโลยีสารสนเทศ';
+    const termText = 'ภาคเรียนที่ 1 ปีการศึกษา 2568';
+    const termShort = '1 / 2568';
+    const headName = 'นางวิภาวดี ทองคำ';
+    const LEVELS = ['ปวช.ปีที่ ๑','ปวช.ปีที่ ๒','ปวช.ปีที่ ๓','ปวส.ปีที่ ๑','ปวส.ปีที่ ๒'];
+
+    const docCourses = [
+      { code:COURSES.net.code, name:COURSES.net.name, teacher:'นายสมชาย ใจดี', level:'ปวส.', levelYear:'สทส.๑/๑', levelIdx:3, rooms:'๑', students:36, items:[
+        { name:'สาย UTP CAT6 (กล่อง 305 ม.)', unit:'กล่อง', price:2450, qty:2 },
+        { name:'หัวต่อ RJ-45 CAT6 (แพ็ค 100)', unit:'แพ็ค', price:600, qty:1 },
+        { name:'Gigabit Switch 8 Port', unit:'เครื่อง', price:890, qty:4 },
+        { name:'Wireless Access Point', unit:'เครื่อง', price:1250, qty:2 },
+        { name:'คีมเข้าหัวสาย LAN', unit:'ด้าม', price:260, qty:6 },
+        { name:'Cable Tester', unit:'เครื่อง', price:480, qty:2 },
+      ]},
+      { code:COURSES.dev.code, name:COURSES.dev.name, teacher:'นายสมชาย ใจดี', level:'ปวส.', levelYear:'สทส.๑/๑', levelIdx:3, rooms:'๑', students:36, items:[
+        { name:'บอร์ด Arduino Uno R3', unit:'บอร์ด', price:320, qty:20 },
+        { name:'เซนเซอร์อุณหภูมิ DHT22', unit:'ตัว', price:145, qty:20 },
+        { name:'Breadboard 830 จุด', unit:'ชิ้น', price:85, qty:20 },
+        { name:'Relay Module 1 Channel', unit:'ตัว', price:40, qty:20 },
+        { name:'สายจัมเปอร์ M-M (แพ็ค 40)', unit:'แพ็ค', price:45, qty:10 },
+      ]},
+    ];
+
+    // สผ.1.2 & 1.3 : one sheet per course
+    const courseSheets = docCourses.map((c) => {
+      let t = 0;
+      const rows = c.items.map((it,i) => { const sub = it.price*it.qty; t += sub; return { no:i+1, name:it.name, unit:it.unit, priceFmt:fmt(it.price), qty:it.qty, subFmt:fmt(sub) }; });
+      const levels = LEVELS.map((lb,idx) => ({ label:lb, rooms: idx===c.levelIdx?c.rooms:'', students: idx===c.levelIdx?String(c.students):'' }));
+      return { code:c.code, name:c.name, teacher:c.teacher, level:c.level, levelYear:c.levelYear, rooms:c.rooms, students:String(c.students), rows, levels, totalFmt:fmt(t), totalText:bahtText(t), _t:t };
+    });
+    const sp12sheets = courseSheets;
+    const sp13sheets = courseSheets;
+
+    // สผ.1.1 : flat department-wide estimate
+    const allRows = [];
+    docCourses.forEach(c => c.items.forEach(it => { const sub = it.price*it.qty; allRows.push({ name:it.name, unit:it.unit, priceFmt:fmt(it.price), qty:it.qty, subFmt:fmt(sub) }); }));
+    const sp11rows = allRows.map((r,i)=>({ no:i+1, ...r }));
+    const grand = courseSheets.reduce((a,c)=>a+c._t,0);
+    const totalStudents = docCourses.reduce((a,c)=>a+c.students,0);
+
+    return {
+      notLoggedIn: !s.loggedIn,
+      loggedIn: s.loggedIn,
+      resolved: s.resolved,
+      username: s.username, password: s.password,
+      onUser:(e)=>this.setState({username:e.target.value}),
+      onPass:(e)=>this.setState({password:e.target.value}),
+      doLogin:()=>this.login(), doLogout:()=>this.logout(),
+
+      // shell
+      collapsed: s.collapsed,
+      showLabels: !s.collapsed,
+      sidebarW: s.collapsed ? '72px' : '250px',
+      toggleSidebar:()=>this.setState(x=>({collapsed:!x.collapsed})),
+      roleLabel: r.label, userName: r.name, userDept: r.dept,
+      userInitial: r.name.replace(/^(ดร\.|นาย|นาง|นางสาว)/,'').trim().charAt(0),
+      role: s.role,
+      roleMenuOpen: s.roleMenuOpen,
+      toggleRoleMenu:()=>this.setState(x=>({roleMenuOpen:!x.roleMenuOpen})),
+      pickTeacher:()=>this.setRole('teacher'),
+      pickDeptHead:()=>this.setRole('depthead'),
+      pickCurriculum:()=>this.setRole('curriculum'),
+      pickAcademic:()=>this.setRole('deputy_academic'),
+      pickPlan:()=>this.setRole('deputy_plan'),
+      pickDirector:()=>this.setRole('director'),
+      pickAdmin:()=>this.setRole('admin'),
+
+      // theme
+      setLight:()=>this.applyTheme('light'),
+      setDark:()=>this.applyTheme('dark'),
+      setSystem:()=>this.applyTheme('system'),
+      btnLight:this.themeBtn('light'), btnDark:this.themeBtn('dark'), btnSystem:this.themeBtn('system'),
+
+      // nav
+      goDashboard:()=>this.nav('dashboard'),
+      goMaterials:()=>this.nav('materials'),
+      goRequest:()=>this.nav('request'),
+      goDocs:()=>this.nav('docs'),
+      goWorkflow:()=>this.nav('workflow'),
+      goAdmin:()=>this.nav('admin'),
+      navDashboard:this.navStyle('dashboard'), navMaterials:this.navStyle('materials'),
+      navRequest:this.navStyle('request'), navDocs:this.navStyle('docs'),
+      navWorkflow:this.navStyle('workflow'), navAdmin:this.navStyle('admin'),
+
+      // menu visibility
+      mShowRequest: isTeacher,
+      mShowMaterials: isDeptHead || isAdmin,
+      mShowDocs: !isAdmin,
+      mShowWorkflow: !isAdmin,
+      mShowAdmin: isAdmin,
+
+      // screens
+      sDashboard: s.loggedIn && s.screen==='dashboard',
+      sMaterials: s.loggedIn && s.screen==='materials',
+      sRequest:   s.loggedIn && s.screen==='request',
+      sDocs:      s.loggedIn && s.screen==='docs',
+      sWorkflow:  s.loggedIn && s.screen==='workflow',
+      sAdmin:     s.loggedIn && s.screen==='admin',
+
+      // dashboard role branch
+      dashTeacher: isTeacher,
+      dashApprover: isApprover,
+      dashAdmin: isAdmin,
+      pendingCount: pending ? 1 : 0,
+
+      // materials
+      materialsView, mQuery:s.mQuery, onSearch:(e)=>this.setState({mQuery:e.target.value}),
+      matCount: s.materials.length,
+      onAddMaterial:()=>this.openAddMaterial(),
+      mForm:s.mForm, mFormOpen:s.mForm.open, mFormTitle: s.mForm.editIndex>=0?'แก้ไขวัสดุ':'เพิ่มวัสดุใหม่',
+      fCode:s.mForm.code, fName:s.mForm.name, fUnit:s.mForm.unit, fPrice:s.mForm.price, fShop:s.mForm.shop,
+      onFName:(e)=>this.setForm('name',e.target.value), onFUnit:(e)=>this.setForm('unit',e.target.value),
+      onFPrice:(e)=>this.setForm('price',e.target.value), onFShop:(e)=>this.setForm('shop',e.target.value),
+      saveMaterial:()=>this.saveMaterial(), cancelForm:()=>this.cancelForm(),
+
+      // request form
+      courseCode: COURSES[s.course].code, courseName: COURSES[s.course].name,
+      course:s.course, onCourse:(e)=>this.setState({course:e.target.value}),
+      students:s.students, onStudents:(e)=>this.setState({students:e.target.value}),
+      term:s.term, onTerm:(e)=>this.setState({term:e.target.value}),
+      linesView, requestTotalFmt: fmt(total), lineCount:s.lines.length,
+      materials:s.materials,
+      newCode:s.newCode, onNewCode:(e)=>this.setState({newCode:e.target.value}),
+      newQty:s.newQty, onNewQty:(e)=>this.setState({newQty:e.target.value}),
+      addLine:()=>this.addLine(), submitRequest:()=>this.submitRequest(),
+
+      // docs
+      docTab:s.docTab, isSp11:s.docTab==='sp11', isSp12:s.docTab==='sp12', isSp13:s.docTab==='sp13',
+      setSp11:()=>this.setState({docTab:'sp11'}), setSp12:()=>this.setState({docTab:'sp12'}), setSp13:()=>this.setState({docTab:'sp13'}),
+      tabSp11: s.docTab==='sp11' ? 'background:var(--primary);color:#fff;' : 'background:transparent;color:var(--text-2);',
+      tabSp12: s.docTab==='sp12' ? 'background:var(--primary);color:#fff;' : 'background:transparent;color:var(--text-2);',
+      tabSp13: s.docTab==='sp13' ? 'background:var(--primary);color:#fff;' : 'background:transparent;color:var(--text-2);',
+      college, dept: deptFull, deptShort, termText, termShort, headName,
+      sp11rows, sp11GrandFmt: fmt(grand), sp11GrandText: bahtText(grand), totalStudents,
+      sp12sheets, sp13sheets, grandFmt: fmt(grand),
+      exportPdf:()=>{ const lbl = s.docTab==='sp11'?'สผ.1.1':s.docTab==='sp12'?'สผ.1.2':'สผ.1.3'; this.showToast('เตรียมพิมพ์ / บันทึก PDF ('+lbl+')'); setTimeout(()=>{ try{ window.print(); }catch(e){} }, 350); },
+      printQuote:()=>{ this.showToast('เปิดหน้าพิมพ์เอกสารสำหรับส่งร้านค้า'); setTimeout(()=>{ try{ window.print(); }catch(e){} }, 350); },
+
+      // workflow
+      stepsView, canApprove: isApprover && pending,
+      approveCurrent:()=>this.approveCurrent(), rejectCurrent:()=>this.rejectCurrent(),
+
+      // admin
+      usersView, userCount:s.users.length,
+
+      // toast
+      toast:s.toast, toastVisible: !!s.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
