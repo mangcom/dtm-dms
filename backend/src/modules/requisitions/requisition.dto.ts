@@ -1,14 +1,40 @@
-import { ApprovalStep, Material, Requisition, RequisitionItem, Subject, User } from "@prisma/client";
+import { ApprovalStep, Department, Material, Requisition, RequisitionItem, Subject, User, WorkSection } from "@prisma/client";
 
 type ItemWithMaterial = RequisitionItem & { material: Material };
+type StepWithRelations = ApprovalStep & {
+  department: Department | null;
+  workSection: WorkSection | null;
+  actor: User | null;
+};
 type RequisitionWithRelations = Requisition & {
   subject: Subject;
   teacher: User;
   items: ItemWithMaterial[];
-  approvalSteps?: ApprovalStep[];
+  approvalSteps?: StepWithRelations[];
 };
 
 export function toRequisitionDto(r: RequisitionWithRelations) {
+  const steps = (r.approvalSteps ?? [])
+    .slice()
+    .sort((a, b) => a.stepOrder - b.stepOrder)
+    .map((s) => ({
+      id: s.id,
+      stepOrder: s.stepOrder,
+      positionType: s.positionType,
+      departmentId: s.departmentId,
+      departmentName: s.department?.name ?? null,
+      workSectionId: s.workSectionId,
+      workSectionName: s.workSection?.name ?? null,
+      status: s.status,
+      actedAt: s.actedAt,
+      note: s.note,
+      actorName: s.actor?.fullName ?? null,
+    }));
+  // ขั้นที่ค้างอยู่ลำดับแรกสุด (stepOrder น้อยสุดที่ยัง pending) = ขั้นที่กำลัง
+  // รอการกระทำจริง ณ ตอนนี้ — ขั้นถัดไปที่ pending อยู่หลังจากนี้ยังกระทำไม่ได้
+  // จนกว่าขั้นนี้จะเสร็จก่อน (อนุมัติตามลำดับทีละขั้นเท่านั้น)
+  const currentStep = steps.find((s) => s.status === "pending") ?? null;
+
   return {
     id: r.id,
     term: r.term,
@@ -28,7 +54,9 @@ export function toRequisitionDto(r: RequisitionWithRelations) {
       unitPriceSnapshot: Number(i.unitPriceSnapshot),
       subtotal: Number(i.subtotal),
     })),
-    stepCount: r.approvalSteps?.length ?? 0,
+    stepCount: steps.length,
+    steps,
+    currentStepId: currentStep?.id ?? null,
   };
 }
 

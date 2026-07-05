@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../../config/prisma";
 import { requireAuth } from "../../middleware/auth";
 import { asyncHandler, HttpError } from "../../middleware/errorHandler";
+import { generateApprovalChain } from "../workflow/workflow.service";
 import { toRequisitionDto } from "./requisition.dto";
 
 export const requisitionRouter = Router();
@@ -11,7 +12,7 @@ const includeRelations = {
   subject: true,
   teacher: true,
   items: { include: { material: true } },
-  approvalSteps: true,
+  approvalSteps: { include: { department: true, workSection: true, actor: true } },
 } as const;
 
 const itemSchema = z.object({
@@ -69,9 +70,18 @@ requisitionRouter.get(
       include: includeRelations,
     });
     if (!requisition) throw new HttpError(404, "ไม่พบคำขอ");
-    // เจ้าของคำขอดูของตัวเองได้เสมอ; ผู้มีสิทธิ์อนุมัติดูได้ผ่าน workflow module
-    // (เช็คสิทธิ์ตรงนั้นแทน เพื่อไม่ให้ route นี้ต้อง query ทุกแบบซ้ำ)
-    if (requisition.teacherId !== req.user!.sub) {
+    // เจ้าของคำขอดูของตัวเองได้เสมอ; ผู้อนุมัติดูได้ถ้าตำแหน่ง+ขอบเขตที่สวมอยู่
+    // ตอนนี้ตรงกับขั้นใดขั้นหนึ่งในสายอนุมัติของคำขอนี้ (ดูได้ทั้งขั้นที่ทำไปแล้ว/
+    // กำลังรอ/ยังไม่ถึงคิว ไม่ใช่แค่ขั้นที่กระทำได้ตอนนี้ — กระทำได้เมื่อไหร่เช็คแยก
+    // ที่ workflow module)
+    const isOwner = requisition.teacherId === req.user!.sub;
+    const isRelevantApprover = requisition.approvalSteps.some(
+      (s) =>
+        s.positionType === req.user!.activePositionType &&
+        (!s.departmentId || s.departmentId === req.user!.activeDepartmentId) &&
+        (!s.workSectionId || s.workSectionId === req.user!.activeWorkSectionId)
+    );
+    if (!isOwner && !isRelevantApprover) {
       throw new HttpError(403, "ไม่มีสิทธิ์เข้าถึงคำขอนี้");
     }
     res.json({ requisition: toRequisitionDto(requisition) });
@@ -143,16 +153,24 @@ requisitionRouter.post(
   "/:id/submit",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const existing = await prisma.requisition.findUnique({ where: { id: req.params.id } });
+    const existing = await prisma.requisition.findUnique({
+      where: { id: req.params.id },
+      include: { subject: true },
+    });
     if (!existing) throw new HttpError(404, "ไม่พบคำขอ");
     if (existing.teacherId !== req.user!.sub) throw new HttpError(403, "ไม่ใช่คำขอของคุณ");
     if (existing.status !== "draft") throw new HttpError(400, "คำขอนี้ถูกส่งอนุมัติไปแล้ว");
 
-    // การสร้างขั้นตอนอนุมัติ (ApprovalStep chain) อยู่ใน workflow.service.ts —
-    // ดู requisition.routes.ts เวอร์ชันถัดไปที่ผูก generateApprovalChain ตรงนี้
-    const requisition = await prisma.requisition.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.requisition.update({
+        where: { id: req.params.id },
+        data: { status: "submitted", submittedAt: new Date() },
+      });
+      await generateApprovalChain(req.params.id, existing.subject.departmentId, tx);
+    });
+
+    const requisition = await prisma.requisition.findUniqueOrThrow({
       where: { id: req.params.id },
-      data: { status: "submitted", submittedAt: new Date() },
       include: includeRelations,
     });
     res.json({ requisition: toRequisitionDto(requisition) });

@@ -49,6 +49,7 @@
 
 import { PrismaClient, PositionType, Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { generateApprovalChain } from "../src/modules/workflow/workflow.service";
 
 const prisma = new PrismaClient();
 
@@ -327,10 +328,12 @@ async function backfillOrgStructure() {
   }
 
   // 3) WorkSection "งานพัสดุ" — ตัวอย่างจริงตาม requirement (นางพรจิรา เป็นหัวหน้า)
+  // isProcurementReview: true ทำให้เป็นขั้นตรวจในสายอนุมัติด้วย (ดู
+  // workflow.service.ts's APPROVAL_CHAIN — resolve จาก flag นี้ ไม่ hardcode ชื่อ)
   const procurementSection = await prisma.workSection.upsert({
     where: { name: "งานพัสดุ" },
-    update: {},
-    create: { name: "งานพัสดุ", managesMaterials: true },
+    update: { managesMaterials: true, isProcurementReview: true },
+    create: { name: "งานพัสดุ", managesMaterials: true, isProcurementReview: true },
   });
 
   // 4) PositionAssignment — mirror role เดิมของทุกคน 1:1 (PositionType กับ Role
@@ -394,6 +397,22 @@ async function backfillOrgStructure() {
   console.log(
     `Backfill โครงสร้างองค์กร: ${departmentNames.length} แผนก, 1 งาน (งานพัสดุ), ตำแหน่งพื้นฐานครบ ${allUsers.length} คน`
   );
+}
+
+/** ระหว่างพัฒนา Milestone 7 พบว่ามีคำขอ (Requisition) สถานะ "submitted" ที่ถูก
+ * สร้างไว้ก่อนหน้านี้ (ตอน Milestone 6 ยังไม่มี workflow.service.ts) จึงไม่มีแถว
+ * ApprovalStep เลยสักขั้น — ค้างอยู่ถาวรเพราะไม่มีใครอนุมัติ/ตีกลับได้ (ไม่ผ่าน
+ * เกณฑ์ "ขั้นปัจจุบัน" ของใครเลย) แก้ด้วยการสร้างสายอนุมัติย้อนหลังให้ แทนที่จะ
+ * ลบหรือ reset ข้อมูล ตามกฎที่ต้องเพิ่ม/แก้แบบ additive เท่านั้น */
+async function backfillMissingApprovalChains() {
+  const orphaned = await prisma.requisition.findMany({
+    where: { status: "submitted", approvalSteps: { none: {} } },
+    include: { subject: true },
+  });
+  for (const r of orphaned) {
+    await generateApprovalChain(r.id, r.subject.departmentId, prisma);
+    console.log(`สร้างสายอนุมัติย้อนหลังให้คำขอ ${r.id} (เดิมไม่มีขั้นอนุมัติเลย)`);
+  }
 }
 
 async function main() {
@@ -465,6 +484,7 @@ async function main() {
   }
 
   await backfillOrgStructure();
+  await backfillMissingApprovalChains();
 
   console.log(`Seeded ${USERS.length} users, ${MATERIALS.length} materials, ${CLASSROOMS.length} classrooms, ${SUBJECTS.length} subjects.`);
   console.log(`All seeded users share the password: "${DEFAULT_PASSWORD}"`);

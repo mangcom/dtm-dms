@@ -119,6 +119,18 @@ export const EditIcon = (props: IconProps) => (
   </svg>
 );
 
+export const CheckIcon = (props: IconProps) => (
+  <svg {...base({ width: 18, height: 18, strokeWidth: 2.2, ...props })}>
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+
+export const CloseIcon = (props: IconProps) => (
+  <svg {...base({ width: 18, height: 18, strokeWidth: 2.2, ...props })}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);
+
 export const TrashIcon = (props: IconProps) => (
   <svg {...base({ width: 15, height: 15, strokeWidth: 1.9, ...props })}>
     <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />

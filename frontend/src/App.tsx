@@ -7,6 +7,7 @@ import { Materials } from "./pages/Materials";
 import { Admin } from "./pages/Admin";
 import { Profile } from "./pages/Profile";
 import { RequestForm } from "./pages/RequestForm";
+import { Workflow } from "./pages/Workflow";
 import { ComingSoon } from "./pages/ComingSoon";
 import { NAV_VISIBILITY } from "./lib/roles";
 
@@ -37,7 +38,7 @@ export default function App() {
           path="/workflow"
           element={
             <ProtectedRoute allow={NAV_VISIBILITY.workflow}>
-              <ComingSoon title="ติดตามสถานะการอนุมัติ" phase="Phase 2" />
+              <Workflow />
             </ProtectedRoute>
           }
         />
