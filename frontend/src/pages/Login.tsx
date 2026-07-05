@@ -94,8 +94,8 @@ export function Login() {
 
           <div className="mt-[18px] rounded-[9px] bg-surface-2 px-3.5 py-3 text-[12.5px] leading-[1.6] text-text-2">
             <b className="text-text">เดโม:</b> ผู้ใช้ทดสอบทุกบัญชี รหัสผ่านคือ{" "}
-            <code className="font-mono">password</code> เช่น <code className="font-mono">somchai.j</code>{" "}
-            (ครูผู้สอน), <code className="font-mono">wipawadee.t</code> (หัวหน้าแผนกวิชา), <code className="font-mono">admin</code>{" "}
+            <code className="font-mono">password</code> เช่น <code className="font-mono">pornjira.n</code>{" "}
+            (ครูผู้สอน), <code className="font-mono">pornchai.t</code> (หัวหน้าแผนกวิชา), <code className="font-mono">admin</code>{" "}
             (ผู้ดูแลระบบ)
           </div>
         </form>
