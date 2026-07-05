@@ -6,6 +6,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Materials } from "./pages/Materials";
 import { Admin } from "./pages/Admin";
 import { Profile } from "./pages/Profile";
+import { RequestForm } from "./pages/RequestForm";
 import { ComingSoon } from "./pages/ComingSoon";
 import { NAV_VISIBILITY } from "./lib/roles";
 
@@ -28,7 +29,7 @@ export default function App() {
           path="/request"
           element={
             <ProtectedRoute allow={NAV_VISIBILITY.request}>
-              <ComingSoon title="กรอกรายการวัสดุฝึกต่อรายวิชา" phase="Phase 2" />
+              <RequestForm />
             </ProtectedRoute>
           }
         />

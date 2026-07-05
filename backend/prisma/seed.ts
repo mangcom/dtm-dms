@@ -374,6 +374,23 @@ async function backfillOrgStructure() {
     }
   }
 
+  // 7) ใครก็ตามที่เป็นเจ้าของรายวิชา (Subject.teacherId) ต้องมีตำแหน่ง "teacher"
+  // เสมอ แม้ role หลักของเขาใน Phase 1 จะเป็นอย่างอื่น (เช่น นายพรชัย ตุ่นแก้ว
+  // ถูก seed ไว้เป็น dept_head อย่างเดียวตอน Phase 1 — แต่ในความเป็นจริงหัวหน้า
+  // แผนกก็ยังคงสอนอยู่ จึงต้องเห็นเมนู "กรอกรายการวัสดุฝึก" ได้ด้วย) นี่คืออีก
+  // ตัวอย่าง multi-role ที่เกิดจากข้อมูลจริง ไม่ใช่แค่ตัวอย่างที่ตั้งใจสร้างไว้
+  const teacherIdsWithSubjects = [...new Set(subjects.map((s) => s.teacherId))];
+  for (const teacherId of teacherIdsWithSubjects) {
+    const existing = await prisma.positionAssignment.findFirst({
+      where: { userId: teacherId, positionType: "teacher" },
+    });
+    if (!existing) {
+      await prisma.positionAssignment.create({ data: { userId: teacherId, positionType: "teacher" } });
+      const owner = allUsers.find((u) => u.id === teacherId);
+      console.log(`เพิ่มตำแหน่ง 'ครูผู้สอน' ให้ ${owner?.fullName ?? teacherId} (เป็นเจ้าของรายวิชาอยู่แล้วแต่ไม่มีตำแหน่งนี้)`);
+    }
+  }
+
   console.log(
     `Backfill โครงสร้างองค์กร: ${departmentNames.length} แผนก, 1 งาน (งานพัสดุ), ตำแหน่งพื้นฐานครบ ${allUsers.length} คน`
   );

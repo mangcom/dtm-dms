@@ -10,6 +10,8 @@ import { workSectionRouter } from "./modules/work-sections/workSection.routes";
 import { positionRouter } from "./modules/positions/position.routes";
 import { userRouter } from "./modules/users/user.routes";
 import { profileRouter } from "./modules/profile/profile.routes";
+import { subjectRouter } from "./modules/subjects/subject.routes";
+import { requisitionRouter } from "./modules/requisitions/requisition.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 export const app = express();
@@ -28,6 +30,8 @@ app.use("/api/work-sections", workSectionRouter);
 app.use("/api/positions", positionRouter);
 app.use("/api/users", userRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/subjects", subjectRouter);
+app.use("/api/requisitions", requisitionRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
