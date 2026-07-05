@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { ROLE_LABEL } from "../lib/roles";
+import { POSITION_LABEL } from "../lib/roles";
 import { ChevronDownIcon, MenuIcon, MoonIcon, SunIcon, SystemIcon } from "./icons";
 
 interface TopbarProps {
@@ -21,6 +21,12 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
 
   if (!user) return null;
   const initial = user.fullName.trim().charAt(0);
+  const activePosition = user.positions.find((p) => p.id === user.activePositionId);
+  const activePositionLabel =
+    activePosition?.label ??
+    [POSITION_LABEL[user.activePositionType], activePosition?.departmentName ?? activePosition?.workSectionName]
+      .filter(Boolean)
+      .join(" · ");
 
   return (
     <header className="sticky top-0 z-20 flex h-[60px] flex-none items-center justify-between border-b border-border bg-surface px-[22px]">
@@ -31,7 +37,7 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
         >
           <MenuIcon />
         </button>
-        <div className="text-[15px] font-semibold text-text-2">{user.department}</div>
+        <div className="text-[15px] font-semibold text-text-2">{user.department?.name ?? "-"}</div>
       </div>
 
       <div className="flex items-center gap-3.5">
@@ -59,7 +65,7 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
             </div>
             <div className="text-left leading-tight">
               <div className="text-[13px] font-semibold text-text">{user.fullName}</div>
-              <div className="text-[11.5px] font-semibold text-primary">{ROLE_LABEL[user.role]}</div>
+              <div className="text-[11.5px] font-semibold text-primary">{activePositionLabel}</div>
             </div>
             <ChevronDownIcon className="ml-0.5" />
           </button>
@@ -72,7 +78,7 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
                 ข้อมูลบัญชี
               </div>
               <div className="rounded-lg px-[11px] py-2 text-[13.5px] text-text-2">{user.rmsCode}</div>
-              <div className="rounded-lg px-[11px] py-2 text-[13.5px] text-text-2">{user.position}</div>
+              <div className="rounded-lg px-[11px] py-2 text-[13.5px] text-text-2">{user.username}</div>
             </div>
           )}
         </div>

@@ -47,7 +47,7 @@
  * อื่นจะถูกอัปเดตทีหลัง — ทำให้รัน seed ซ้ำได้โดยไม่สร้างผู้ใช้ซ้ำซ้อน
  */
 
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient, PositionType, Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -145,12 +145,14 @@ const USERS: SeedUser[] = [
   // teachers.id=142, user_id=51 ใน RMS จริง — เป็น head_teacher_id ของแผนก
   // คอมพิวเตอร์ธุรกิจ (departments.id=9, role='hod') แต่ในระบบ DTM-DMS เรา
   // กำหนดบทบาทเพิ่มเติมให้ดูแลงานหลักสูตรทั้งวิทยาลัย (ข้ามแผนกได้ ตามที่
-  // requirement ระบุไว้สำหรับตำแหน่ง "หัวหน้างานหลักสูตร")
+  // requirement ระบุไว้สำหรับตำแหน่ง "หัวหน้างานหลักสูตร") — department ตั้งเป็น
+  // แผนกต้นสังกัดจริงจาก RMS (คอมพิวเตอร์ธุรกิจ) ส่วน curriculum_head เป็นตำแหน่ง
+  // แยกที่ไม่ผูกกับแผนกใดแผนกหนึ่ง (ดู PositionAssignment backfill ด้านล่าง)
   {
     rmsCode: "RMS-T142",
     username: genFakeCitizenId("910000000004"),
     fullName: "นายศุภชัย แก้ววิลัย",
-    department: "งานพัฒนาหลักสูตรและการสอน",
+    department: "แผนกวิชาคอมพิวเตอร์ธุรกิจ",
     position: "หัวหน้างานหลักสูตร",
     role: "curriculum_head",
   },
@@ -298,6 +300,85 @@ const SUBJECTS: Array<{
 const TERM = "1";
 const YEAR = "2568";
 
+/**
+ * Phase 2 backfill: สร้าง Department/WorkSection/PositionAssignment จาก
+ * User.role/department (string) เดิม — ต่อยอดจาก migration แบบ additive (ห้าม
+ * reset ฐานข้อมูล) ทำครั้งเดียวตอน seed แต่รันซ้ำได้ปลอดภัย (upsert/
+ * findFirst-then-create ทุกจุด) ลบ block นี้ได้ในอนาคตหลัง Phase 2 เสถียรแล้ว
+ * พร้อมกับตอนตัดคอลัมน์ legacy role/department ออกจริง ("Phase 2.1 cleanup")
+ */
+async function backfillOrgStructure() {
+  const allUsers = await prisma.user.findMany();
+
+  // 1) Department — upsert จากทุกค่า department string ที่มีอยู่จริงในตาราง users
+  const departmentNames = [...new Set(allUsers.map((u) => u.department))];
+  const departmentByName = new Map<string, string>();
+  for (const name of departmentNames) {
+    const dept = await prisma.department.upsert({ where: { name }, update: {}, create: { name } });
+    departmentByName.set(name, dept.id);
+  }
+
+  // 2) ผูก User.departmentId จาก department string เดิม (ไม่ลบ string เดิมทิ้ง)
+  for (const u of allUsers) {
+    const departmentId = departmentByName.get(u.department);
+    if (departmentId && u.departmentId !== departmentId) {
+      await prisma.user.update({ where: { id: u.id }, data: { departmentId } });
+    }
+  }
+
+  // 3) WorkSection "งานพัสดุ" — ตัวอย่างจริงตาม requirement (นางพรจิรา เป็นหัวหน้า)
+  const procurementSection = await prisma.workSection.upsert({
+    where: { name: "งานพัสดุ" },
+    update: {},
+    create: { name: "งานพัสดุ", managesMaterials: true },
+  });
+
+  // 4) PositionAssignment — mirror role เดิมของทุกคน 1:1 (PositionType กับ Role
+  // มีสมาชิกชื่อตรงกันทุกตัวโดยตั้งใจ จึง cast ข้ามชนิดกันได้อย่างปลอดภัย)
+  for (const u of allUsers) {
+    const positionType = u.role as unknown as PositionType;
+    const existing = await prisma.positionAssignment.findFirst({ where: { userId: u.id, positionType } });
+    if (existing) continue;
+
+    // เฉพาะ dept_head ผูก scope เป็นแผนกของตัวเอง — role อื่นไม่ผูกแผนก/งานใดๆ
+    const departmentId = u.role === "dept_head" ? departmentByName.get(u.department) : undefined;
+    await prisma.positionAssignment.create({ data: { userId: u.id, positionType, departmentId } });
+  }
+
+  // 5) ตัวอย่าง multi-role จริงตาม requirement: นางพรจิรา เป็นทั้งครูผู้สอน (จากข้อ 4
+  // แล้ว) และหัวหน้างานพัสดุ (เพิ่มตำแหน่งที่สองให้ — คนเดียวถือได้หลายตำแหน่ง)
+  const pornjira = allUsers.find((u) => u.rmsCode === "RMS-T152");
+  if (pornjira) {
+    const existing = await prisma.positionAssignment.findFirst({
+      where: { userId: pornjira.id, positionType: "work_section_head", workSectionId: procurementSection.id },
+    });
+    if (!existing) {
+      await prisma.positionAssignment.create({
+        data: {
+          userId: pornjira.id,
+          positionType: "work_section_head",
+          workSectionId: procurementSection.id,
+          label: "หัวหน้างานพัสดุ",
+        },
+      });
+      console.log("เพิ่มตำแหน่ง 'หัวหน้างานพัสดุ' ให้นางพรจิรา เงินเจริญ (ตัวอย่าง multi-role ตาม requirement)");
+    }
+  }
+
+  // 6) Subject.departmentId — backfill จาก teacher.departmentId เพื่อให้ workflow
+  // หา "หัวหน้าแผนกของวิชานี้" ได้โดยตรงจากตัว Subject เอง
+  const subjects = await prisma.subject.findMany({ include: { teacher: true } });
+  for (const s of subjects) {
+    if (!s.departmentId && s.teacher.departmentId) {
+      await prisma.subject.update({ where: { id: s.id }, data: { departmentId: s.teacher.departmentId } });
+    }
+  }
+
+  console.log(
+    `Backfill โครงสร้างองค์กร: ${departmentNames.length} แผนก, 1 งาน (งานพัสดุ), ตำแหน่งพื้นฐานครบ ${allUsers.length} คน`
+  );
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
 
@@ -365,6 +446,8 @@ async function main() {
       },
     });
   }
+
+  await backfillOrgStructure();
 
   console.log(`Seeded ${USERS.length} users, ${MATERIALS.length} materials, ${CLASSROOMS.length} classrooms, ${SUBJECTS.length} subjects.`);
   console.log(`All seeded users share the password: "${DEFAULT_PASSWORD}"`);

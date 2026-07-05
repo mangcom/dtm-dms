@@ -4,7 +4,6 @@ import { api, getApiErrorMessage } from "../lib/apiClient";
 import { fmt } from "../lib/format";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
-import { MATERIAL_MANAGER_ROLES } from "../lib/roles";
 import { EditIcon, PlusIcon, SearchIcon, TrashIcon } from "../components/icons";
 
 interface Material {
@@ -35,7 +34,7 @@ export function Materials() {
   const [query, setQuery] = useState("");
   const [form, setForm] = useState<MaterialFormState>(emptyForm);
 
-  const canManage = !!user && MATERIAL_MANAGER_ROLES.includes(user.role);
+  const canManage = !!user?.canManageMaterials;
 
   const { data: materials = [] } = useQuery({
     queryKey: ["materials"],

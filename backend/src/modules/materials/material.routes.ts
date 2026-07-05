@@ -1,13 +1,28 @@
-import { Router } from "express";
+import { Request, Response, NextFunction, Router } from "express";
 import { z } from "zod";
 import { prisma } from "../../config/prisma";
-import { requireAuth, requireRole } from "../../middleware/auth";
+import { requireAuth } from "../../middleware/auth";
 import { asyncHandler, HttpError } from "../../middleware/errorHandler";
 import { toMaterialDto } from "./material.dto";
 
 export const materialRouter = Router();
 
-const MANAGE_ROLES = ["dept_head", "curriculum_head", "admin"] as const;
+// admin/dept_head/curriculum_head can always manage materials; a
+// work_section_head can too, but only if the specific WorkSection they lead
+// has managesMaterials=true (admin-configurable — e.g. "งานพัสดุ") — this is
+// how a teacher who also heads procurement (e.g. นางพรจิรา) gets the ability
+// to add Material records without hardcoding her name/role anywhere.
+const ALWAYS_ALLOWED_TYPES = ["admin", "dept_head", "curriculum_head"] as const;
+
+const requireMaterialManager = asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {
+  if (!req.user) throw new HttpError(401, "Not authenticated");
+  if ((ALWAYS_ALLOWED_TYPES as readonly string[]).includes(req.user.activePositionType)) return next();
+  if (req.user.activePositionType === "work_section_head" && req.user.activeWorkSectionId) {
+    const section = await prisma.workSection.findUnique({ where: { id: req.user.activeWorkSectionId } });
+    if (section?.managesMaterials) return next();
+  }
+  throw new HttpError(403, "Insufficient permissions");
+});
 
 const materialInputSchema = z.object({
   name: z.string().min(1, "กรุณากรอกชื่อวัสดุ"),
@@ -44,7 +59,7 @@ materialRouter.get(
 materialRouter.post(
   "/",
   requireAuth,
-  requireRole(...MANAGE_ROLES),
+  requireMaterialManager,
   asyncHandler(async (req, res) => {
     const parsed = materialInputSchema.safeParse(req.body);
     if (!parsed.success) throw new HttpError(400, parsed.error.errors[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
@@ -60,7 +75,7 @@ materialRouter.post(
 materialRouter.put(
   "/:id",
   requireAuth,
-  requireRole(...MANAGE_ROLES),
+  requireMaterialManager,
   asyncHandler(async (req, res) => {
     const parsed = materialInputSchema.safeParse(req.body);
     if (!parsed.success) throw new HttpError(400, parsed.error.errors[0]?.message ?? "ข้อมูลไม่ถูกต้อง");
@@ -79,7 +94,7 @@ materialRouter.put(
 materialRouter.delete(
   "/:id",
   requireAuth,
-  requireRole(...MANAGE_ROLES),
+  requireMaterialManager,
   asyncHandler(async (req, res) => {
     const existing = await prisma.material.findUnique({ where: { id: req.params.id } });
     if (!existing) throw new HttpError(404, "ไม่พบรายการวัสดุ");

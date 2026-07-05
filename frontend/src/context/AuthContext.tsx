@@ -1,16 +1,29 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { api, getApiErrorMessage } from "../lib/apiClient";
-import { Role } from "../lib/roles";
+import { PositionType } from "../lib/roles";
+
+export interface UserPosition {
+  id: string;
+  positionType: PositionType;
+  departmentId: string | null;
+  departmentName: string | null;
+  workSectionId: string | null;
+  workSectionName: string | null;
+  label: string | null;
+}
 
 export interface AuthUser {
   id: string;
   rmsCode: string;
   username: string;
   fullName: string;
-  department: string;
-  position: string | null;
-  role: Role;
+  avatarUrl: string | null;
+  department: { id: string; name: string; shortName: string | null } | null;
   active: boolean;
+  canManageMaterials: boolean;
+  positions: UserPosition[];
+  activePositionId: string;
+  activePositionType: PositionType;
 }
 
 interface AuthContextValue {
@@ -18,6 +31,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  switchPosition: (positionAssignmentId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -48,8 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const switchPosition = useCallback(async (positionAssignmentId: string) => {
+    try {
+      const res = await api.post<{ user: AuthUser }>("/auth/switch-position", { positionAssignmentId });
+      setUser(res.data.user);
+    } catch (err) {
+      throw new Error(getApiErrorMessage(err, "สลับบทบาทไม่สำเร็จ"));
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, login, logout, switchPosition }}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 
