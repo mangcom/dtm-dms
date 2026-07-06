@@ -13,6 +13,7 @@ import { profileRouter } from "./modules/profile/profile.routes";
 import { subjectRouter } from "./modules/subjects/subject.routes";
 import { requisitionRouter } from "./modules/requisitions/requisition.routes";
 import { workflowRouter } from "./modules/workflow/workflow.routes";
+import { documentRouter } from "./modules/documents/document.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 export const app = express();
@@ -34,6 +35,7 @@ app.use("/api/profile", profileRouter);
 app.use("/api/subjects", subjectRouter);
 app.use("/api/requisitions", requisitionRouter);
 app.use("/api/workflow", workflowRouter);
+app.use("/api/documents", documentRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

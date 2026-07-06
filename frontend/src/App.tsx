@@ -8,6 +8,7 @@ import { Admin } from "./pages/Admin";
 import { Profile } from "./pages/Profile";
 import { RequestForm } from "./pages/RequestForm";
 import { Workflow } from "./pages/Workflow";
+import { Documents } from "./pages/Documents";
 import { ComingSoon } from "./pages/ComingSoon";
 import { NAV_VISIBILITY } from "./lib/roles";
 
@@ -46,7 +47,7 @@ export default function App() {
           path="/documents"
           element={
             <ProtectedRoute allow={NAV_VISIBILITY.documents}>
-              <ComingSoon title="เอกสาร สผ.1.1 – สผ.1.3" phase="Phase 3" />
+              <Documents />
             </ProtectedRoute>
           }
         />
