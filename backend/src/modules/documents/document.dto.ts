@@ -1,3 +1,4 @@
+import { PositionType } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 import { HttpError } from "../../middleware/errorHandler";
 
@@ -24,6 +25,18 @@ async function resolveDeptHeadName(departmentId: string): Promise<string> {
     include: { user: true },
   });
   return assignment?.user.fullName ?? "( ยังไม่ได้กำหนดหัวหน้าแผนก )";
+}
+
+/** หาผู้ถือตำแหน่งระดับวิทยาลัย (ไม่ผูกแผนก/งาน) เอาไว้เซ็นชื่อในบันทึกข้อความ
+ * ใบผ่านแผน เช่น รองผู้อำนวยการฝ่ายวิชาการ — ใช้ pattern เดียวกับ
+ * resolveActorsForStep ใน workflow.service.ts (positionType + active, ไม่ผูก
+ * scope) แต่คืนแค่ชื่อคนแรกที่เจอมาแสดงบนเอกสาร ไม่ใช่ทั้งหมด */
+async function resolveGlobalPositionName(positionType: PositionType): Promise<string> {
+  const assignment = await prisma.positionAssignment.findFirst({
+    where: { positionType, active: true, departmentId: null, workSectionId: null },
+    include: { user: true },
+  });
+  return assignment?.user.fullName ?? "( ยังไม่ได้กำหนดตำแหน่งนี้ )";
 }
 
 async function loadRequisitionForDoc(requisitionId: string) {
@@ -146,5 +159,39 @@ export async function getPriceEstimateData(requisitionId: string) {
     rows,
     totalAmount,
     docDate,
+  };
+}
+
+/** เลขที่หนังสือ/โครงการ/ช่วงวันที่ ไม่มี field เก็บใน schema เพราะแต่ละครั้งที่
+ * ออกเอกสารไม่เหมือนกัน (ผู้ใช้พิมพ์เอาตอนสร้างเอกสาร เหมือนภาคเรียน/ปีการศึกษา
+ * ของ สผ.1.1) จึงรับเป็น parameter จากหน้าเว็บแทนที่จะ derive จากฐานข้อมูล */
+export async function getMemoData(
+  requisitionId: string,
+  docNumber: string,
+  projectRef: string,
+  dateRangeText: string
+) {
+  const requisition = await loadRequisitionForDoc(requisitionId);
+  const totalAmount = Number(requisition.totalAmount);
+  const departmentId = requisition.subject.departmentId;
+  const headName = departmentId
+    ? await resolveDeptHeadName(departmentId)
+    : "( ยังไม่ได้กำหนดหัวหน้าแผนก )";
+  const deputyAcademicName = await resolveGlobalPositionName("deputy_academic");
+  const docDate = requisition.submittedAt ?? requisition.createdAt;
+
+  return {
+    college: COLLEGE_NAME,
+    docNumber,
+    docDate,
+    term: requisition.term,
+    year: requisition.year,
+    teacherName: requisition.teacher.fullName,
+    departmentName: requisition.subject.department?.name ?? "-",
+    projectRef,
+    dateRangeText,
+    totalAmount,
+    headName,
+    deputyAcademicName,
   };
 }

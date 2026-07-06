@@ -4,11 +4,12 @@ import { prisma } from "../../config/prisma";
 import { AuthTokenPayload, requireAuth } from "../../middleware/auth";
 import { asyncHandler, HttpError } from "../../middleware/errorHandler";
 import { renderHtmlToPdf } from "../../lib/pdf";
-import { getPriceEstimateData, getSp11Data, getSubjectDocData } from "./document.dto";
+import { getMemoData, getPriceEstimateData, getSp11Data, getSubjectDocData } from "./document.dto";
 import { renderSp11 } from "./templates/sp11.template";
 import { renderSp12 } from "./templates/sp12.template";
 import { renderSp13 } from "./templates/sp13.template";
 import { renderPriceEstimate } from "./templates/priceEstimate.template";
+import { renderMemo } from "./templates/memo.template";
 
 export const documentRouter = Router();
 
@@ -108,5 +109,31 @@ documentRouter.get(
     const data = await getPriceEstimateData(parsed.data.requisitionId);
     const html = renderPriceEstimate(data);
     await respondWithDocument(res, html, parsed.data.format, "price-estimate");
+  })
+);
+
+const memoSchema = z.object({
+  requisitionId: z.string().min(1),
+  docNumber: z.string().default(""),
+  projectRef: z.string().default(""),
+  dateRangeText: z.string().default(""),
+  format: formatSchema,
+});
+
+documentRouter.get(
+  "/memo",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const parsed = memoSchema.safeParse(req.query);
+    if (!parsed.success) throw new HttpError(400, "กรุณาระบุคำขอ");
+    await assertCanViewRequisition(parsed.data.requisitionId, req.user!);
+    const data = await getMemoData(
+      parsed.data.requisitionId,
+      parsed.data.docNumber,
+      parsed.data.projectRef,
+      parsed.data.dateRangeText
+    );
+    const html = renderMemo(data);
+    await respondWithDocument(res, html, parsed.data.format, "memo");
   })
 );

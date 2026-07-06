@@ -4,13 +4,14 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/apiClient";
 import { DocumentsIcon } from "../components/icons";
 
-type DocTab = "sp11" | "sp12" | "sp13" | "price-estimate";
+type DocTab = "sp11" | "sp12" | "sp13" | "price-estimate" | "memo";
 
 const TABS: Array<{ key: DocTab; label: string }> = [
   { key: "sp11", label: "สผ.1.1 · ประมาณการรวมทั้งแผนก" },
   { key: "sp12", label: "สผ.1.2 · สรุปรายวิชา" },
   { key: "sp13", label: "สผ.1.3 · รายละเอียดตามรายวิชา" },
   { key: "price-estimate", label: "ใบประมาณราคา" },
+  { key: "memo", label: "บันทึกข้อความ (ใบผ่านแผน)" },
 ];
 
 interface RequisitionOption {
@@ -34,6 +35,9 @@ export function Documents() {
   const [term, setTerm] = useState("1");
   const [year, setYear] = useState("2568");
   const [requisitionId, setRequisitionId] = useState("");
+  const [docNumber, setDocNumber] = useState("");
+  const [projectRef, setProjectRef] = useState("");
+  const [dateRangeText, setDateRangeText] = useState("");
 
   const { data: mine = [] } = useQuery({
     queryKey: ["requisitions", "mine"],
@@ -54,7 +58,11 @@ export function Documents() {
 
   const departmentId = user.department?.id ?? "";
   const needsRequisition = tab !== "sp11";
-  const params: Record<string, string> = needsRequisition ? { requisitionId } : { departmentId, term, year };
+  const params: Record<string, string> = needsRequisition
+    ? tab === "memo"
+      ? { requisitionId, docNumber, projectRef, dateRangeText }
+      : { requisitionId }
+    : { departmentId, term, year };
   const canPreview = needsRequisition ? !!requisitionId : !!departmentId && !!term && !!year;
   const previewUrl = canPreview ? buildDocUrl(tab, params, "html") : "";
   const pdfUrl = canPreview ? buildDocUrl(tab, params, "pdf") : "";
@@ -112,7 +120,39 @@ export function Documents() {
               ))}
             </select>
           </div>
-        ) : (
+        ) : null}
+        {tab === "memo" && (
+          <>
+            <div>
+              <label className="mb-1.5 block text-[12.5px] font-semibold text-text-2">เลขที่หนังสือ</label>
+              <input
+                value={docNumber}
+                onChange={(e) => setDocNumber(e.target.value)}
+                placeholder="เช่น วก 1.12/1/2566"
+                className="w-52 rounded-lg border border-border bg-surface px-3 py-2 text-[13.5px] outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[12.5px] font-semibold text-text-2">โครงการที่</label>
+              <input
+                value={projectRef}
+                onChange={(e) => setProjectRef(e.target.value)}
+                placeholder="เช่น 3.2.2.10 โครงการจัดซื้อวัสดุการศึกษา"
+                className="w-72 rounded-lg border border-border bg-surface px-3 py-2 text-[13.5px] outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-[12.5px] font-semibold text-text-2">ระหว่างวันที่</label>
+              <input
+                value={dateRangeText}
+                onChange={(e) => setDateRangeText(e.target.value)}
+                placeholder="เช่น ตุลาคม 2565 – กุมภาพันธ์ 2566"
+                className="w-64 rounded-lg border border-border bg-surface px-3 py-2 text-[13.5px] outline-none"
+              />
+            </div>
+          </>
+        )}
+        {!needsRequisition && (
           <>
             <div>
               <label className="mb-1.5 block text-[12.5px] font-semibold text-text-2">ภาคเรียน</label>
