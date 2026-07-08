@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "DTM-DMS (postgres)",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "dtm_dms",
+      "Username": "dtm",
+      "SSLMode": "prefer"
+    }
+  }
+}

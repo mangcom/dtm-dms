@@ -14,7 +14,7 @@
 /frontend           React (Vite) + TypeScript + Tailwind SPA
 /design-reference    ไฟล์ดีไซน์ต้นฉบับจาก Claude Design (DTM-DMS.dc.html, support.js)
                       และตัวอย่างฟอร์มราชการจริง (uploads/) — ใช้อ้างอิงเท่านั้น ไม่ใช่ส่วนของแอปที่รัน
-docker-compose.yml   postgres + backend + frontend
+docker-compose.yml   postgres + backend + frontend + pgadmin
 ```
 
 ## เริ่มต้นใช้งาน (Docker)
@@ -27,6 +27,11 @@ docker compose up --build
 - Frontend: http://localhost:8080
 - Backend API: http://localhost:4000/api
 - Postgres: localhost:5432
+- pgAdmin (จัดการฐานข้อมูลผ่าน Web UI): http://localhost:5050
+  — login ด้วย `PGADMIN_DEFAULT_EMAIL`/`PGADMIN_DEFAULT_PASSWORD` ใน `.env`
+  (ดีฟอลต์ `admin@dtm-dms.com` / `change-me-in-production` — ควรเปลี่ยนก่อนใช้งานจริง)
+  connection ไปยัง postgres service ถูกตั้งไว้ล่วงหน้าให้แล้ว (`pgadmin/servers.json`)
+  แค่คลิกเซิร์ฟเวอร์ "DTM-DMS (postgres)" แล้วใส่รหัสผ่านของ `POSTGRES_PASSWORD`
 
 ผู้ใช้ทดสอบทุกบัญชี รหัสผ่านคือ `password` เช่น `somchai.j` (ครูผู้สอน), `wipawadee.t`
 (หัวหน้าแผนกวิชา), `admin` (ผู้ดูแลระบบ) — ดูรายชื่อทั้งหมดใน `backend/prisma/seed.ts`

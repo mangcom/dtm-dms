@@ -44,6 +44,22 @@ services:
     ports:
       - "8080:80"
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@dtm-dms.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-change-me-in-production}
+    ports:
+      - "5050:80"
+    volumes:
+      - dtm_pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+
 volumes:
   dtm_postgres_data:
   dtm_uploads_data:
+  dtm_pgadmin_data:
